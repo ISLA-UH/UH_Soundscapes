@@ -68,17 +68,17 @@ class DatasetReader:
         :param save_data: if True, save the processed data to a file. Default True.
         :param save_path: path to save the processed data. Default current directory.
         """
-        self.dataset_name = dataset_name
-        self.input_path = input_path
-        self.default_filename = default_filename
-        self.dataset_labels = dataset_labels
-        self.show_info = show_info
-        self.show_waveform_plots = show_waveform_plots
-        self.show_frequency_plots = show_frequency_plots
-        self.save_data = save_data
-        self.save_path = save_path
+        self.dataset_name: str = dataset_name
+        self.input_path: str = input_path
+        self.default_filename: str = default_filename
+        self.dataset_labels: DatasetLabels = dataset_labels
+        self.show_info: bool = show_info
+        self.show_waveform_plots: bool = show_waveform_plots
+        self.show_frequency_plots: bool = show_frequency_plots
+        self.save_data: bool = save_data
+        self.save_path: str = save_path
 
-        self.data = None
+        self.data: pd.DataFrame = pd.DataFrame()
         self.load_data()
 
     def load_data(self):
@@ -94,13 +94,13 @@ class DatasetReader:
         except Exception as e:
             print(f"Error loading dataset from {self.input_path}: {e}")
 
-    def get_unique_event_ids(self) -> Tuple[np.array, np.array]:
+    def get_unique_event_ids(self) -> Tuple[np.ndarray, np.ndarray]:
         """
         :return: Unique event IDs and their counts in the dataset.
         """
         return np.unique(self.data[self.dataset_labels.event_id], return_counts=True)
 
-    def show_info(self):
+    def show_base_info(self):
         """
         Display information about the dataset if show_info is True.
         # TODO: make generic?
@@ -128,7 +128,7 @@ class DatasetReader:
                 plt.grid()
                 plt.show()
 
-    def show_frequency_plots(self):
+    def plot_frequency_waveforms(self):
         """
         Show frequency plots for the dataset if show_frequency_plots is True.
         TODO: definitely functionalize
@@ -145,7 +145,7 @@ class DatasetReader:
                 plt.grid()
                 plt.show()
 
-    def save_data(self) -> str:
+    def save_event(self) -> str:
         """
         Save the processed data to the specified save path if save_data is True.
 
@@ -153,9 +153,10 @@ class DatasetReader:
         """
         if self.save_data:
             event_id_to_save = int(input("Enter the event ID number to save a subset of the SHAReD dataset: ").strip())
+            all_ids = self.get_unique_event_ids()[0]
             # Check if the ID is in the dataset
-            if event_id_to_save not in event_ids:
-                print(f"Event ID '{event_id_to_save}' not found in dataset. Please check the available event IDs.")
+            if event_id_to_save not in all_ids:
+                print(f"Event ID '{event_id_to_save}' not found in dataset. Avaiable IDs are: {all_ids}")
                 return ""
             # Create a subset of the DataFrame with only the recordings from the specified event
             subset_shared_ds = self.data[self.data[self.dataset_labels.event_id] == event_id_to_save]
