@@ -1,0 +1,24 @@
+# See:
+# - https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
+# - https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
+
+[project]
+name = "UH_Soundscapes"
+version = "0.1"
+authors = [
+    { name = "ISLA, UH" }
+]
+description = "Read audio data for an event, process it, and create an exportable product."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "Apache-2.0"
+
+# Please specify dependencies in alphabetical order
+dependencies = [
+]
+
+[project.urls]
+homepage = "https://github.com/ISLA-UH/UH_Soundscapes"
+
+[tool.setuptools.packages.find]
+include = ["UH_Soundscapes"]
