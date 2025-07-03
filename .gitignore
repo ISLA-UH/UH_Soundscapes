@@ -9,6 +9,7 @@
 .idea/**
 
 # Data files
+# May want to add *.json after deciding
 *.wav
 *.rdvx
 *.rdvxz
@@ -24,7 +25,6 @@
 *.pqt
 *.npz
 *.txt
-*.json
 *.lz4
 *.bin
 *.mseed
