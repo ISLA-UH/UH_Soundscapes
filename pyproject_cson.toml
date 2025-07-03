@@ -5,10 +5,8 @@
 [project]
 name = "cson-pipeline"
 version = "2025.04.08"
-authors = [
-    { name = "CSON" }
-]
-description = "CSON pipeline for processing data into ML-ready formats"
+authors = "SCAPE"
+description = "From CSON pipeline for processing data into ML-ready formats"
 readme = "README.md"
 requires-python = ">=3.10,<=3.13.2"
 
