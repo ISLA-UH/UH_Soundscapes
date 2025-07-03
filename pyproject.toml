@@ -14,7 +14,11 @@ requires-python = ">=3.9"
 license = "Apache-2.0"
 
 # Please specify dependencies in alphabetical order
+# quantum-inferno brings matplotlib, numpy, scipy, and setuptools with it.
+# put specific versions of those modules here, if needed.
 dependencies = [
+    "pandas>=2.1.3", # Pandas is a library for data manipulation and analysis in Python.
+    "quantum-inferno>=1.2.0", # Quantum Inferno is a library for quantum computing tasks.
 ]
 
 [project.urls]

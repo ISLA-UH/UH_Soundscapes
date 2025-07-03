@@ -1,13 +1,12 @@
-'''
+"""
 To push Cybersonic Data to UDL
 
 Katie Stevens 2025
-'''
+"""
 import requests, base64
 import sys, os
 from datetime import datetime, timezone
 import ssl
-import xmlrpc
 import xmlrpc.client
 import urllib
 import json
@@ -17,7 +16,7 @@ from typing import Tuple
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal as signal
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import datetime
 
 # QI modules
@@ -29,13 +28,13 @@ from quantum_inferno.plot_templates.plot_templates import plot_mesh_wf_vert
 import redvox.common.date_time_utils as dt
 from redvox.common.data_window import DataWindowConfig, DataWindow
 
-'''
+"""
 TODO: Figure out what schema on UDL that would work best for our data
 TODO: Update required JSON keys 
-'''
+"""
 
 #SERVICE_ENDPOINT = "https://imagery-test.unifieddatalibrary.com/filedrop/"
-'''
+"""
 Looking at Schemas: Track, Notification
 Upload type and requirements will be different per schema. Check UDL to see what is needed.
 
@@ -46,7 +45,7 @@ Our fields:
 - peak entropy
 - peak frequency
 - pecoc/ml output: anomoulous score. 
-'''
+"""
 MICROS_TO_S = 1E-6
 REF_EPOCH_S = 1684926000
 # Window duration and hop duration in seconds
@@ -79,6 +78,7 @@ end_segment = 2
 segment_counters = np.arange(start_segment, end_segment)
 number_of_segments = len(segment_counters)
 
+
 def create_json_file(data):
     # Derived from ZuluWookiee Code
 
@@ -108,6 +108,7 @@ def create_json_file(data):
     #     json.dump(post_json_data, f)
 
     return post_json_data
+
 
 def cw_pipeline(
         band_order_nth: float,
@@ -156,6 +157,7 @@ def cw_pipeline(
 
     return frequency_hz, time_cwt_s, cwt_power
 
+
 if __name__=="__main__":
     # load_dotenv()
     # USERNAME = os.getenv("USER")
@@ -190,7 +192,6 @@ if __name__=="__main__":
 
         SEGMENT_START_DATETIME = dt.datetime_from_epoch_seconds_utc(int(SEGMENT_START_EPOCH_S))
         SEGMENT_END_DATETIME = dt.datetime_from_epoch_seconds_utc(int(SEGMENT_END_EPOCH_S))
-
 
         print('Event Name:', SEGMENT_NAME)
         print('Start:', SEGMENT_START_DATETIME)
@@ -277,13 +278,13 @@ if __name__=="__main__":
 
             cwt_power_mean_per_window_per_band = np.mean(cwt_power, axis=1)
 
-            station_ip: str = station_id_str[0:3] + '.6.1' + station_id_str[5:7] + '.' + station_id_str[7:]
-            print('Station ID: ', station_id_str)
-            print('Equivalent IP:', station_ip)
-            print('Start time, Unix s: ', EPISODE_START_EPOCH_S)
-            print('Band frequency, Hz: ', frequency_cwt_hz)
-            print('Entropy per band, Bits: ', cwt_entropy_per_band)
-            print('Total Entropy, Bits: ', cwt_entropy, np.sum(cwt_entropy_per_band))
+            station_ip: str = f"{station_id_str[0:3]}.6.1{station_id_str[5:7]}.{station_id_str[7:]}"
+            print(f"Station ID: {station_id_str}\n"
+                  f"Equivalent IP: {station_ip}\n"
+                  f"Start time, Unix s: {EPISODE_START_EPOCH_S}\n"
+                  f"Band frequency, Hz: {frequency_cwt_hz}\n"
+                  f"Entropy per band, Bits: {cwt_entropy_per_band}\n"
+                  f"Total Entropy, Bits: {cwt_entropy}, {np.sum(cwt_entropy_per_band)}\n")
 
             start_time = dt.datetime_from_epoch_microseconds_utc(dw.start_date())
             end_time = dt.datetime_from_epoch_microseconds_utc(dw.end_date())

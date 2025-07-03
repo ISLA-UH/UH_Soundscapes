@@ -1,16 +1,13 @@
 """
 Generic dataset reader
 Assumes the dataset can be read via pickle and is a pandas dataframe.
+It's very likely this is gonna be an inherited class based on specific events and their needs
 """
 from typing import Tuple
 
-import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pandas as pd
-from quantum_inferno.cwt_atoms import cwt_chirp_from_sig
-from quantum_inferno.plot_templates.plot_templates_examples import plot_wf_mesh_vert_example
-from scipy.signal import welch
 
 
 class DatasetLabels:
@@ -103,67 +100,45 @@ class DatasetReader:
     def show_base_info(self):
         """
         Display information about the dataset if show_info is True.
-        # TODO: make generic?
+        # TODO: looks like this will be inherited due to specific needs
         """
-        event_ids, counts = np.unique(self.data[self.dataset_labels.event_id], return_counts=True)
-        if self.show_info:
-            for event_id, count in zip(event_ids, counts):
-                event_df = self.data[self.data[self.dataset_labels.event_id] == event_id]
-                eq_yield = event_df[self.dataset_labels.source_yield_kg][event_df.index[0]]
-                print(f"\tEvent {event_id}: {eq_yield} kg TNT eq., {count} recordings")
+        pass
 
     def plot_waveforms(self):
         """
         Plot waveforms for the dataset if show_waveform_plots is True.
-        TODO: definitely functionalize
+        TODO: inheritance, yadda yadda
         """
-        if self.show_waveform_plots:
-            for event_id in self.data[self.dataset_labels.event_id].unique():
-                event_df = self.data[self.data[self.dataset_labels.event_id] == event_id]
-                plt.figure(figsize=(10, 6))
-                plt.plot(event_df['time'], event_df['waveform'])
-                plt.title(f"Waveform for Event ID: {event_id}")
-                plt.xlabel('Time (s)')
-                plt.ylabel('Amplitude')
-                plt.grid()
-                plt.show()
+        pass
 
     def plot_frequency_waveforms(self):
         """
         Show frequency plots for the dataset if show_frequency_plots is True.
-        TODO: definitely functionalize
+        TODO: you guessed it, inheritance
         """
-        if self.show_frequency_plots:
-            for event_id in self.data[self.dataset_labels.event_id].unique():
-                event_df = self.data[self.data[self.dataset_labels.event_id] == event_id]
-                f, pxx = welch(event_df['waveform'], fs=1/(event_df['time'][1] - event_df['time'][0]), nperseg=1024)
-                plt.figure(figsize=(10, 6))
-                plt.semilogy(f, pxx)
-                plt.title(f"Frequency Spectrum for Event ID: {event_id}")
-                plt.xlabel('Frequency (Hz)')
-                plt.ylabel('Power Spectral Density')
-                plt.grid()
-                plt.show()
+        pass
 
     def save_event(self) -> str:
         """
         Save the processed data to the specified save path if save_data is True.
+        # TODO: OH BOY, INHERITANCE AGAIN
 
         :return: path to saved data file or empty string if not saved
         """
-        if self.save_data:
-            event_id_to_save = int(input("Enter the event ID number to save a subset of the SHAReD dataset: ").strip())
-            all_ids = self.get_unique_event_ids()[0]
-            # Check if the ID is in the dataset
-            if event_id_to_save not in all_ids:
-                print(f"Event ID '{event_id_to_save}' not found in dataset. Avaiable IDs are: {all_ids}")
-                return ""
-            # Create a subset of the DataFrame with only the recordings from the specified event
-            subset_shared_ds = self.data[self.data[self.dataset_labels.event_id] == event_id_to_save]
-            # Save the subset DataFrame to a new pickle file
-            output_filename = f"SHAReD_event{event_id_to_save}.pkl"
-            output_path = os.path.join(os.path.dirname(__file__), output_filename)
-            subset_shared_ds.to_pickle(output_path)
-            print(f"Subset of SHAReD containing event {event_id_to_save} data saved to: {output_path}")
-            return output_path
-        return ""
+        pass
+        # if self.save_data:
+        #     event_id_to_save = int(input("Enter the event ID number to save a subset of the SHAReD dataset: ").strip())
+        #     all_ids = self.get_unique_event_ids()[0]
+        #     # Check if the ID is in the dataset
+        #     if event_id_to_save not in all_ids:
+        #         print(f"Event ID '{event_id_to_save}' not found in dataset. Avaiable IDs are: {all_ids}")
+        #         return ""
+        #     # Create a subset of the DataFrame with only the recordings from the specified event
+        #     subset_shared_ds = self.data[self.data[self.dataset_labels.event_id] == event_id_to_save]
+        #     # Save the subset DataFrame to a new pickle file
+        #     output_filename = f"SHAReD_event{event_id_to_save}.pkl"
+        #     output_path = os.path.join(os.path.dirname(__file__), output_filename)
+        #     subset_shared_ds.to_pickle(output_path)
+        #     print(f"Subset of SHAReD containing event {event_id_to_save} data saved to: {output_path}")
+        #     return output_path
+        # return ""
