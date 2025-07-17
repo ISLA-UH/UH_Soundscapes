@@ -3,7 +3,7 @@ Generic dataset reader
 Assumes the dataset can be read via pickle and is a pandas dataframe.
 It's very likely this is gonna be an inherited class based on specific events and their needs
 """
-from typing import Tuple
+from typing import Any, Tuple
 
 import numpy as np
 import os
@@ -24,6 +24,16 @@ class DatasetLabels:
         :param event_id: str, name of the event ID column in the dataset.
         """
         self.event_id = event_id
+
+    def get_labels(self) -> dict:
+        """
+        Get the labels for the dataset.
+
+        :return: labels for the dataset as a dictionary.
+        """
+        return {
+            "event_id": self.event_id
+        }
 
 
 class DatasetReader:
@@ -91,6 +101,19 @@ class DatasetReader:
         except Exception as e:
             print(f"Error loading dataset from {self.input_path}: {e}")
 
+    def filter_data(self, filter_id: str, filter_value: Any) -> pd.DataFrame:
+        """
+        Filter the dataset based on a specific column and value.
+
+        :param filter_id: name of the column to filter by.
+        :param filter_value: value to filter the column by.
+        :return: filtered DataFrame or empty DataFrame if filter_id not found.
+        """
+        if filter_id not in self.data.columns:
+            print(f"Filter ID '{filter_id}' not found in dataset columns.")
+            return pd.DataFrame()  # Return empty DataFrame if filter_id not found
+        return self.data[self.data[filter_id] == filter_value]
+
     def get_unique_event_ids(self) -> Tuple[np.ndarray, np.ndarray]:
         """
         :return: Unique event IDs and their counts in the dataset.
@@ -141,4 +164,4 @@ class DatasetReader:
         #     subset_shared_ds.to_pickle(output_path)
         #     print(f"Subset of SHAReD containing event {event_id_to_save} data saved to: {output_path}")
         #     return output_path
-        # return ""
+        return ""
