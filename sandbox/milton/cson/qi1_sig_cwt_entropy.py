@@ -20,7 +20,6 @@ from quantum_inferno.plot_templates.plot_templates import plot_mesh_wf_vert
 import redvox.common.date_time_utils as dt
 from redvox.common.data_window import DataWindowConfig, DataWindow
 
-from milton.qi0_config_mawar_mag import EVENT_NAME
 # # Configuration file: MAWAR@ISLA
 # from qi0_config_mawar import EVENT_NAME, INPUT_DIR, EPISODE_START_EPOCH_S, \
 #     WINDOW_DURATION_S, HOP_S, STATIONS, OUTPUT_DIR, MICROS_TO_S
