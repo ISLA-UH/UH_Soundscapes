@@ -24,6 +24,7 @@ class DatasetLabels:
         :param event_id: str, name of the event ID column in the dataset.
         """
         self.event_id = event_id
+        # sample rate
 
     def get_labels(self) -> dict:
         """
@@ -33,6 +34,7 @@ class DatasetLabels:
         """
         return {
             "event_id": self.event_id
+            # sample rate
         }
 
 

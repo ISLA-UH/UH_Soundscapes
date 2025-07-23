@@ -13,8 +13,8 @@ import plot_utils as plot_utils
 
 TUTORIAL_PICKLE_FILE_NAME = "ASTRA_ART-1_1637620009.pkl"
 CURRENT_DIRECTORY = os.getcwd()
-# PATH_TO_TUTORIAL_PKL = os.path.join(CURRENT_DIRECTORY, TUTORIAL_PICKLE_FILE_NAME)
-PATH_TO_TUTORIAL_PKL = "/Users/tyler/IdeaProjects/UH_Soundscapes/sandbox/sarah/ASTRA_ART-1_1637620009.pkl"
+PATH_TO_TUTORIAL_PKL = os.path.join(CURRENT_DIRECTORY, TUTORIAL_PICKLE_FILE_NAME)
+# PATH_TO_TUTORIAL_PKL = "/Users/tyler/IdeaProjects/UH_Soundscapes/sandbox/sarah/ASTRA_ART-1_1637620009.pkl"
 PATH_TO_PKL = PATH_TO_TUTORIAL_PKL
 
 

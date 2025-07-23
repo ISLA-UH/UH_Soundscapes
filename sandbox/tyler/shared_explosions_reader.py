@@ -1,8 +1,10 @@
 """
 SHAReD Explosions Reader using DatasetReader class
 """
+from typing import Tuple
 
 import dataset_reader as dsr
+import plot_utils as plot_utils
 
 
 class SHAReDLabels(dsr.DatasetLabels):
@@ -45,6 +47,16 @@ class SHAReDLabels(dsr.DatasetLabels):
         self.internal_clock_offset_s: str = "internal_clock_offset_s"
         self.smartphone_model: str = "smartphone_model"
         self.effective_yield_category: str = "effective_yield_category"
+
+
+class SHAReDPlot(plot_utils.PlotBase):
+    def __init__(self, fig_size: Tuple[int, int] = (10, 7)) -> None:
+        """
+        Initialize the ASTRA plot class with default parameters.
+
+        :param fig_size: Tuple of (width, height) for the figure size.  Default is (10, 7).
+        """
+        super().__init__(fig_size)
 
 
 class SHAReDReader(dsr.DatasetReader):
