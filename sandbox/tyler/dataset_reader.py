@@ -129,13 +129,6 @@ class DatasetReader:
         """
         pass
 
-    def plot_waveforms(self):
-        """
-        Plot waveforms for the dataset if show_waveform_plots is True.
-        TODO: inheritance, yadda yadda
-        """
-        pass
-
     def plot_frequency_waveforms(self):
         """
         Show frequency plots for the dataset if show_frequency_plots is True.
