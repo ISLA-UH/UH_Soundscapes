@@ -1,17 +1,12 @@
 """
 ESC50 Reader using DatasetReader class
 """
-from datetime import datetime, timezone, timedelta
 import os
 from typing import Tuple
 
-from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 from scipy import signal
-from quantum_inferno.cwt_atoms import cwt_chirp_from_sig
-from quantum_inferno.plot_templates.plot_templates_examples import plot_wf_mesh_vert_example
 
 from data_processing import rolling_mean
 import dataset_reader as dsr
@@ -64,13 +59,46 @@ class ESC50Plot(plot_utils.PlotBase):
     """
     A class to plot ESC50 data using the BasePlot class.
     """
-    def __init__(self, fig_size: Tuple[int, int] = (10, 7)) -> None:
+    def __init__(self, fig_size: Tuple[int, int] = (10, 7), subplots_rows: int = 1, subplots_cols: int = 1) -> None:
         """
         Initialize the ESC50 plot class with default parameters.
 
         :param fig_size: Tuple of (width, height) for the figure size.  Default is (10, 7).
+        :param subplots_rows: Number of rows in the subplot grid. Default is 1.
+        :param subplots_cols: Number of columns in the subplot grid. Default is 1
         """
         super().__init__(fig_size)
+        self.fig, self.ax = plt.subplots(subplots_rows, subplots_cols, figsize=fig_size)
+
+    def plot_event(self, wf_timestamps: np.ndarray, sample_waveform: np.ndarray, freqs: np.ndarray, psd: np.ndarray):
+        """
+        Plot the waveform and power spectral density (PSD) of an event.
+
+        :param wf_timestamps: Timestamps corresponding to the waveform.
+        :param sample_waveform: The waveform data as a NumPy array.
+        :param freqs: Frequencies for the PSD plot.
+        :param psd: Power spectral density values corresponding to the frequencies.
+        """
+        self.ax[0].plot(wf_timestamps, sample_waveform, lw=1, color=self.waveform_color)
+        self.ax[1].plot(freqs, psd, lw=1, color=self.waveform_color)
+
+    def touch_up_plot(self, xlabel: str, title: str, sample_rate: float, ax1_ymax: float):
+        """
+        Final adjustments to the plot, such as setting labels and limits.
+
+        :param xlabel: Label for the x-axis.
+        :param title: Title for the plot.
+        :param sample_rate: Sampling rate of the audio data.
+        :param ax1_ymax: Maximum y-value for the second subplot.
+        """        
+        self.ax[0].set(ylim=self.marker_lines_ylim)
+        self.ax[0].set_title(title, fontsize=self.font_size + 2)
+        self.ax[1].set(xlim=(0, sample_rate / 2), ylim=(0, ax1_ymax * 1.05))
+        self.ax[1].set_xlabel("Frequency (Hz)", fontsize=self.font_size)
+        self.ax[1].set_ylabel("Power spectral density (PSD)", fontsize=self.font_size)
+        self.ax[0].set_xlabel(xlabel, fontsize=self.font_size)
+        self.ax[0].set_ylabel("Normalized waveform", fontsize=self.font_size)
+        plt.subplots_adjust()
 
 
 class ESC50Reader(dsr.DatasetReader):
@@ -81,7 +109,8 @@ class ESC50Reader(dsr.DatasetReader):
     """
     def __init__(self, input_path: str, default_filename: str, show_info: bool = True, 
                  show_waveform_plots: bool = True, show_frequency_plots: bool = True,
-                 save_data: bool = True, save_path: str = "."):
+                 save_data: bool = True, save_path: str = ".", subplots_rows: int = 2, 
+                 subplots_cols: int = 1, fig_size: Tuple[int, int] = (10, 7)) -> None:
         """
         Initialize the SHAReDReader with the path to the dataset.
 
@@ -92,10 +121,13 @@ class ESC50Reader(dsr.DatasetReader):
         :param show_frequency_plots: if True, display frequency plots. Default True.
         :param save_data: if True, save the processed data to a file. Default True.
         :param save_path: path to save the processed data. Default current directory.
+        :param subplots_rows: Number of rows in the subplot grid. Default is 1.
+        :param subplots_cols: Number of columns in the subplot grid. Default is 1
+        :param fig_size: Tuple of (width, height) for the figure size. Default is (10, 7).
         """
         super().__init__("ESC50", input_path, default_filename, ESC50Labels(),
                          show_info, show_waveform_plots, show_frequency_plots, save_data, save_path)
-        self.esc50_plot = ESC50Plot()
+        self.esc50_plot = ESC50Plot(fig_size, subplots_rows, subplots_cols)
         self.sample_rate = 0.
 
     def load_data(self):
@@ -103,7 +135,7 @@ class ESC50Reader(dsr.DatasetReader):
         Load the ASTRA dataset from the input_path.
         """
         super().load_data()
-        self.sample_rate = int(self.data[self.dataset_labels.audio_fs])
+        self.sample_rate = int(self.data[self.dataset_labels.audio_fs].iloc[0])
 
     def print_metadata(self):
         """
@@ -129,12 +161,11 @@ class ESC50Reader(dsr.DatasetReader):
         """
         return self.data[self.dataset_labels.audio_data][self.data.index[idx]]
 
-    def plot_waveforms(self, idx: int) -> Figure:
+    def plot_waveforms(self, idx: int):
         """
         Plot the waveforms of the dataset at the given index.
 
         :param idx: Index of the sample in the dataset.
-        :return: A matplotlib Figure object containing the waveform plot.
         """
         sample_idx = self.data.index[idx]
         sample_fs = self.data[self.dataset_labels.audio_fs][sample_idx]
@@ -153,26 +184,19 @@ class ESC50Reader(dsr.DatasetReader):
 
         print(f"\tPlotting sample {sample_idx} from the {self.sample_rate} Hz ESC-50 dataset...\n")
         # Figure set-up
-        fig, ax = plt.subplots(2, 1, figsize=(10, 7))
         xlabel = "Time (s)"
         title = f"ESC-50 audio downsampled to {int(self.sample_rate)}Hz\n" \
                 f"True class: {sample_esc50_class}\nClass predicted by YAMNet" \
                 f"{' after upsampling' if self.sample_rate < 16000.0 else ''}: {sample_yamnet_class}"
         # Plot the waveform
-        ax[0].plot(time_array, sample_waveform, lw=1, color="k")
-        ax[1].plot(f, Pxx_den, lw=1, color="k")
-        # Figure settings
-        fontsize = 12
-        ax[0].set(xlim=(time_array[0], time_array[-1]), ylim=(-1.1, 1.1))
-        ax[0].set_title(title, fontsize=fontsize + 2)
-        ax[1].set(xlim=(0, self.sample_rate / 2), ylim=(0, np.max(Pxx_den) * 1.05))
-        ax[1].set_xlabel("Frequency (Hz)", fontsize=fontsize)
-        ax[1].set_ylabel("Power spectral density (PSD)", fontsize=fontsize)
-        ax[0].set_xlabel(xlabel, fontsize=fontsize)
-        ax[0].set_ylabel("Normalized waveform", fontsize=fontsize)
+        self.esc50_plot.plot_event(time_array, sample_waveform, f, Pxx_den)
+        self.esc50_plot.touch_up_plot(xlabel, title, sample_fs, np.max(Pxx_den))
 
         plt.subplots_adjust()
-        return fig
+        if self.show_frequency_plots:
+            print(f"\tPlotting the PSD of sample {sample_idx} from the {self.sample_rate} Hz ESC-50 dataset...\n")
+            tfr_title = f"CWT and waveform from ESC-50 PKL index {sample_idx} (clip ID {self.get_event_id()})"
+            _ = self.esc50_plot.plot_tfr(tfr_title, "", sample_fs, time_array, sample_waveform)
 
 if __name__=="__main__":
     import random

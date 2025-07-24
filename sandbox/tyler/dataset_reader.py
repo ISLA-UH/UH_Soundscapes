@@ -90,6 +90,14 @@ class DatasetReader:
         self.data: pd.DataFrame = pd.DataFrame()
         self.load_data()
 
+    def get_event_id(self) -> str:
+        """
+        Get the event ID column name from the dataset labels.
+
+        :return: event ID column name as a string.
+        """
+        return self.dataset_labels.event_id
+
     def load_data(self):
         """
         Load the dataset from the input_path.
