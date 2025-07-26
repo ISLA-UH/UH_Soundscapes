@@ -9,12 +9,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import dataset_reader as dsr
-import plot_utils as plot_utils
 
 TUTORIAL_PICKLE_FILE_NAME = "ASTRA_ART-1_1637620009.pkl"
 CURRENT_DIRECTORY = os.getcwd()
-PATH_TO_TUTORIAL_PKL = os.path.join(CURRENT_DIRECTORY, TUTORIAL_PICKLE_FILE_NAME)
-# PATH_TO_TUTORIAL_PKL = "/Users/tyler/IdeaProjects/UH_Soundscapes/sandbox/sarah/ASTRA_ART-1_1637620009.pkl"
+# PATH_TO_TUTORIAL_PKL = os.path.join(CURRENT_DIRECTORY, TUTORIAL_PICKLE_FILE_NAME)
+PATH_TO_TUTORIAL_PKL = "/Users/tyler/IdeaProjects/UH_Soundscapes/sandbox/sarah/ASTRA_ART-1_1637620009.pkl"
 PATH_TO_PKL = PATH_TO_TUTORIAL_PKL
 
 
@@ -84,18 +83,27 @@ class ASTRALabels(dsr.DatasetLabels):
         self.n_srbs = n_srbs
 
 
-class ASTRAPlot(plot_utils.PlotBase):
+class ASTRAReader(dsr.DatasetReader, dsr.PlotBase):
     """
-    A class to plot ASTRA data using the BasePlot class.
-    """
-    def __init__(self, fig_size: Tuple[int, int] = (10, 7)) -> None:
-        """
-        Initialize the ASTRA plot class with default parameters.
+    A class to read and analyze the ASTRA dataset.
 
-        :param fig_size: Tuple of (width, height) for the figure size.  Default is (10, 7).
+    Inherits from DatasetReader and uses ASTRALabels for column names.
+    """
+    def __init__(self, input_path: str, default_filename: str, show_frequency_plots: bool = True,
+                 save_path: str = ".", fig_size: Tuple[int, int] = (10, 7)):
         """
-        super().__init__(fig_size)
-        self.fig, self.ax = plt.subplots(figsize=fig_size)
+        Initialize the SHAReDReader with the path to the dataset.
+
+        :param input_path: path to the dataset file
+        :param default_filename: default filename to use if the input file is not found
+        :param show_frequency_plots: if True, display frequency plots. Default True.
+        :param save_path: path to save the processed data. Default current directory.
+        :param fig_size: Tuple of (width, height) for the figure size. Default is (10, 7).
+        """
+        # initialize the parent classes
+        dsr.DatasetReader.__init__(self, "ASTRA", input_path, default_filename, ASTRALabels(), save_path)
+        dsr.PlotBase.__init__(self, fig_size)
+        self.show_frequency_plots = show_frequency_plots
 
     def plot_vlines(self, x_coords: List[float], colors: List[str], line_styles: List[str], labels: List[str]):
         """
@@ -111,8 +119,8 @@ class ASTRAPlot(plot_utils.PlotBase):
             raise ValueError("x_coords, colors, line_styles, and labels must have the same length.")
         for i in range(len(x_coords)):
             self.ax.vlines(
-                ymin=self.marker_lines_ylim[0],
-                ymax=self.marker_lines_ylim[1],
+                ymin=self.base_ylim[0],
+                ymax=self.base_ylim[1],
                 x=x_coords[i],
                 color=colors[i],
                 zorder=self.marker_lines_zorder,
@@ -142,7 +150,8 @@ class ASTRAPlot(plot_utils.PlotBase):
         :param title: Title for the plot.
         """
         self.ax.set(xlabel=xlabel, xlim=(0, self.t_max), 
-                    ylim=(min(self.ticks) - 1.1 * self.y_adj_buff / 2, max(self.ticks) + 1.1 * self.y_adj_buff / 2))
+                    ylim=(min(self.ticks) - 1.1 * self.y_adj_buff / 2, 
+                          max(self.ticks) + 1.1 * self.y_adj_buff / 2))
         self.ax.set_title(title, fontsize=self.font_size + 2)
         self.ax.set_xlabel(xlabel, fontsize=self.font_size)
         self.ax.yaxis.set_ticks(self.ticks)
@@ -151,32 +160,6 @@ class ASTRAPlot(plot_utils.PlotBase):
         self.ax.tick_params(axis="x", which="both", bottom=True, labelbottom=True, labelsize="large")
         self.ax.legend(frameon=False, bbox_to_anchor=(.99, .99), loc='upper right', fontsize=self.font_size)
         plt.subplots_adjust()
-
-
-class ASTRAReader(dsr.DatasetReader):
-    """
-    A class to read and analyze the ASTRA dataset.
-
-    Inherits from DatasetReader and uses ASTRALabels for column names.
-    """
-    def __init__(self, input_path: str, default_filename: str, show_info: bool = True, 
-                 show_waveform_plots: bool = True, show_frequency_plots: bool = True,
-                 save_data: bool = True, save_path: str = ".", fig_size: Tuple[int, int] = (10, 7)) -> None:
-        """
-        Initialize the SHAReDReader with the path to the dataset.
-
-        :param input_path: path to the dataset file
-        :param default_filename: default filename to use if the input file is not found
-        :param show_info: if True, display dataset information. Default True.
-        :param show_waveform_plots: if True, display waveform plots. Default True.
-        :param show_frequency_plots: if True, display frequency plots. Default True.
-        :param save_data: if True, save the processed data to a file. Default True.
-        :param save_path: path to save the processed data. Default current directory.
-        :param fig_size: Tuple of (width, height) for the figure size. Default is (10, 7).
-        """
-        super().__init__("ASTRA", input_path, default_filename, ASTRALabels(),
-                         show_info, show_waveform_plots, show_frequency_plots, save_data, save_path)
-        self.astra_plot = ASTRAPlot(fig_size)
 
     def load_data(self):
         """
@@ -211,9 +194,9 @@ class ASTRAReader(dsr.DatasetReader):
         launch_n_srbs = self.data[self.dataset_labels.n_srbs][self.data.index[0]]
         launch_rocket_type = self.data[self.dataset_labels.rocket_type][self.data.index[0]]
         launch_rocket_model = self.data[self.dataset_labels.rocket_model_number][self.data.index[0]]
-        title = f"Normalized ASTRA audio data from launch {launch_id} on {date_string}"
-        title += f"\nRocket: {launch_rocket_type}, {launch_rocket_model} configuration ({launch_n_srbs} SRBs)"
-        sa_toa_color, pa_toa_color = plot_utils.CBF_COLOR_CYCLE[0], plot_utils.CBF_COLOR_CYCLE[1]
+        title = (f"Normalized ASTRA audio data from launch {launch_id} on {date_string}"
+                 f"\nRocket: {launch_rocket_type}, {launch_rocket_model} configuration ({launch_n_srbs} SRBs)")
+        sa_toa_color, pa_toa_color = self.cbf_colors[0], self.cbf_colors[1]
         sorted_df = self.data.sort_values(by=self.dataset_labels.est_prop_dist_km)
         for station in sorted_df.index:
             # We'll start by normalizing the audio data from each station
@@ -230,11 +213,11 @@ class ASTRAReader(dsr.DatasetReader):
             relative_time = relative_time[first_idx:]
             audio_data = audio_data[first_idx:]
             est_prop_distance_km = self.data[self.dataset_labels.est_prop_dist_km][station]
-            self.astra_plot.plot_single_event(f"{round(est_prop_distance_km, 1)} km", relative_time, audio_data)
+            self.plot_single_event(f"{round(est_prop_distance_km, 1)} km", relative_time, audio_data)
             relative_start_toa_estimate = self.data[self.dataset_labels.s_aligned_toa_est][station] - rep_launch_epoch_s
             relative_peak_toa_estimate = self.data[self.dataset_labels.p_aligned_toa_est][station] - rep_launch_epoch_s
             v_labels = ["Start-aligned TOA estimate", "Peak-aligned TOA estimate"] if station == self.data.index[0] else []
-            self.astra_plot.plot_vlines(
+            self.plot_vlines(
                 x_coords=[relative_start_toa_estimate, relative_peak_toa_estimate],
                 colors=[sa_toa_color, pa_toa_color],
                 line_styles=["-", "--"],
@@ -242,9 +225,8 @@ class ASTRAReader(dsr.DatasetReader):
             )
             station_id = f"{self.data[self.dataset_labels.station_id][station]} ({est_prop_distance_km:.1f} km)"
             if self.show_frequency_plots:
-                self.astra_plot.plot_tfr(f"CWT and waveform from launch {launch_id}", 
-                                         station_id, fs, relative_time, audio_data)
-        self.astra_plot.touch_up_plot(xlabel, title)
+                self.plot_tfr(f"CWT and waveform from launch {launch_id}", station_id, fs, relative_time, audio_data)
+        self.touch_up_plot(xlabel, title)
 
 
 if __name__=="__main__":

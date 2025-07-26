@@ -1,11 +1,21 @@
 """
 SHAReD Explosions Reader using DatasetReader class
 """
+import os
 from typing import Tuple
 
+import matplotlib.pyplot as plt
+import numpy as np
+
+from data_processing import demean_norm
 import dataset_reader as dsr
 import plot_utils as plot_utils
 
+TUTORIAL_PICKLE_FILE_NAME = "SHAReD_tutorial.pkl"
+CURRENT_DIRECTORY = os.getcwd()
+PATH_TO_TUTORIAL_PKL = os.path.join(CURRENT_DIRECTORY, TUTORIAL_PICKLE_FILE_NAME)
+# PATH_TO_PKL = PATH_TO_TUTORIAL_PKL
+PATH_TO_PKL = "/Users/tyler/IdeaProjects/UH_Soundscapes/sandbox/sarah/SHAReD_tutorial.pkl"
 
 class SHAReDLabels(dsr.DatasetLabels):
     """
@@ -50,13 +60,54 @@ class SHAReDLabels(dsr.DatasetLabels):
 
 
 class SHAReDPlot(plot_utils.PlotBase):
-    def __init__(self, fig_size: Tuple[int, int] = (10, 7)) -> None:
+    def __init__(self, fig_size: Tuple[int, int] = (10, 7), subplots_rows: int = 1, subplots_cols: int = 1) -> None:
         """
         Initialize the ASTRA plot class with default parameters.
 
         :param fig_size: Tuple of (width, height) for the figure size.  Default is (10, 7).
+        :param subplots_rows: Number of rows in the subplots. Default is 1.
+        :param subplots_cols: Number of columns in the subplots. Default is 1.
         """
         super().__init__(fig_size)
+        self.fig, self.ax = plt.subplots(subplots_rows, subplots_cols, figsize=fig_size)
+
+    def set_fig_title(self, title: str):
+        """
+        Set the figure title.
+
+        :param title: The title to set for the figure.
+        """
+        self.fig.suptitle(title, fontsize=self.font_size + 2)
+
+    def touch_up_plot(self, xmin: float, xmax: float, s_type: str = "base"):
+        """
+        Final adjustments to the plot, such as setting labels and limits.
+
+        :param xmin: Minimum x-axis limit.
+        :param xmax: Maximum x-axis limit.
+        :param s_type: Sensor classification type. Default is "base". Unrecognized options will default to "base".
+        """
+        if s_type.lower() != "ambient":
+            s_type = "base"
+        if s_type == "ambient":
+            ax_idx = 0
+            title_type = "Ambient"
+        else:
+            ax_idx = 1
+            title_type = "Explosion"
+        self.ax[0, ax_idx].set(xlim=(xmin, xmax), ylim=self.base_ylim)
+        self.ax[0, ax_idx].tick_params(axis="y", labelsize="large", left=True, labelleft=True)
+        self.ax[0, ax_idx].set_title(f"{title_type} microphone", fontsize=self.font_size)
+        self.ax[0, ax_idx].set_ylabel("Norm", fontsize=self.font_size)
+        self.ax[1, ax_idx].set_title(f"{title_type} barometer", fontsize=self.font_size)
+        self.ax[1, ax_idx].tick_params(axis="y", labelsize="large", left=True, labelleft=True)
+        self.ax[1, ax_idx].set_ylabel("Norm", fontsize=self.font_size)
+        self.ax[2, ax_idx].set_title(f"{title_type} accelerometer", fontsize=self.font_size)
+        self.ax[2, ax_idx].tick_params(axis="y", labelsize="large", left=True, labelleft=True)
+        self.ax[2, ax_idx].tick_params(axis="x", which="both", bottom=True, labelbottom=True, labelsize="large")
+        self.ax[2, ax_idx].set_ylabel("Norm", fontsize=self.font_size)
+        self.ax[2, ax_idx].set_xlabel(f"Time (s){' since event' if s_type == 'base' else ''}", fontsize=self.font_size)
+        plt.subplots_adjust(hspace=0.3)
 
 
 class SHAReDReader(dsr.DatasetReader):
@@ -67,7 +118,8 @@ class SHAReDReader(dsr.DatasetReader):
     """
     def __init__(self, input_path: str, default_filename: str, show_info: bool = True, 
                  show_waveform_plots: bool = True, show_frequency_plots: bool = True,
-                 save_data: bool = True, save_path: str = "."):
+                 save_data: bool = True, save_path: str = ".", subplots_rows: int = 3, 
+                 subplots_cols: int = 2, fig_size: Tuple[int, int] = (10, 7)):
         """
         Initialize the SHAReDReader with the path to the dataset.
 
@@ -78,15 +130,24 @@ class SHAReDReader(dsr.DatasetReader):
         :param show_frequency_plots: if True, display frequency plots. Default True.
         :param save_data: if True, save the processed data to a file. Default True.
         :param save_path: path to save the processed data. Default current directory.
+        :param subplots_rows: number of rows in the subplots. Default is 3.
+        :param subplots_cols: number of columns in the subplots. Default is 2.
+        :param fig_size: size of the figure for plotting. Default is (10, 7).
         """
         super().__init__("SHAReD Explosions", input_path, default_filename, SHAReDLabels(),
                          show_info, show_waveform_plots, show_frequency_plots, save_data, save_path)
+        self.shared_plot = SHAReDPlot(fig_size, subplots_rows, subplots_cols)
 
     def load_data(self):
         """
         Load the SHAReD dataset from the input_path.
         """
         super().load_data()
+
+    def print_metadata(self):
+        """
+        Show information about the dataset.
+        """
         # We can get some details about the dataset and print them out
         num_ids = len(self.get_unique_event_ids()[0])
         len_data = len(self.data)
@@ -96,3 +157,102 @@ class SHAReDReader(dsr.DatasetReader):
         print(f"during one event, accompanied by a sample of ambient data from the smartphone's sensors, external location")
         print(f"information, and ground truth data about the smartphone and the explosion. Available fields are listed")
         print(f"in the SHAReDLabels class documentation.\n")
+
+    def print_event_metadata(self):
+        """
+        Print the data for each event in the dataset.
+        """
+        for event_id, count in np.unique(self.data[self.dataset_labels.event_id], return_counts=True):
+            event_df = self.data[self.data[self.dataset_labels.event_id] == event_id]
+            eq_yield = event_df[self.dataset_labels.source_yield_kg][event_df.index[0]]
+            print(f"\tEvent {event_id}: {eq_yield} kg TNT eq. yield, {count} recording(s)")
+
+    def print_event_info(self, event_id: int):
+        """
+        Print information about a specific event.
+
+        :param event_id: The unique ID number of the event to print information for.
+        """
+        event_name = self.data[self.dataset_labels.event_name][self.data.index[0]]
+        source_yield = self.data[self.dataset_labels.source_yield_kg][self.data.index[0]]
+        smartphone_id = self.data[self.dataset_labels.smartphone_id][self.data.index[0]]
+        dist_m = self.data[self.dataset_labels.distance_from_explosion_m][self.data.index[0]]
+        print(f"\nExample event name: {event_name}, event ID number: {event_id}")
+        print(f"{source_yield} kg TNT eq. detonation recorded by station {smartphone_id} at {round(dist_m)}m range.")
+
+    def plot_sensor_data(self, station_idx: int, s_type: str = "base"):
+        """
+        Plot sensor data for a specific station.  Uses the s_type to determine which sensors to plot.
+
+        :param station_index: Index of the station to plot data for.
+        :param s_type: Sensor classification type.  Options are "base" and "ambient".  Default "base".
+                        Unrecognized options will default to "base".
+        """
+        if s_type.lower() != "ambient":
+            s_type = "base"
+        if s_type == "ambient":
+            index = 0
+            labels = [self.dataset_labels.ambient_microphone_time_s, self.dataset_labels.ambient_microphone_data, 
+                      self.dataset_labels.ambient_barometer_time_s, self.dataset_labels.ambient_barometer_data,
+                      self.dataset_labels.ambient_accelerometer_time_s, self.dataset_labels.ambient_accelerometer_data_x,
+                      self.dataset_labels.ambient_accelerometer_data_y, self.dataset_labels.ambient_accelerometer_data_z]
+            start_time = self.data[self.dataset_labels.ambient_microphone_time_s][station_idx][0]
+        else:
+            index = 1
+            labels = [self.dataset_labels.microphone_time_s, self.dataset_labels.microphone_data, 
+                      self.dataset_labels.barometer_time_s, self.dataset_labels.barometer_data,
+                      self.dataset_labels.accelerometer_time_s, self.dataset_labels.accelerometer_data_x,
+                      self.dataset_labels.accelerometer_data_y, self.dataset_labels.accelerometer_data_z]
+            start_time = self.data[self.dataset_labels.explosion_detonation_time][station_idx]
+        self.shared_plot.ax[0, index].plot(self.data[labels[0]][station_idx] - start_time,
+                                           demean_norm(self.data[labels[1]][station_idx]), lw=1, color="k")
+        self.shared_plot.ax[1, index].plot(self.data[labels[2]][station_idx] - start_time,
+                                           demean_norm(self.data[labels[3]][station_idx]), lw=1, color="k")
+        self.shared_plot.ax[2, index].plot(self.data[labels[4]][station_idx] - start_time,
+                                           demean_norm(self.data[labels[5]][station_idx]),
+                                           lw=1, label="x-axis", color=plot_utils.CBF_COLOR_CYCLE[0])
+        self.shared_plot.ax[2, index].plot(self.data[labels[4]][station_idx] - start_time,
+                                           demean_norm(self.data[labels[6]][station_idx]),
+                                           lw=1, label="y-axis", color=plot_utils.CBF_COLOR_CYCLE[1])
+        self.shared_plot.ax[2, index].plot(self.data[labels[4]][station_idx] - start_time,
+                                           demean_norm(self.data[labels[7]][station_idx]),
+                                           lw=1, label="z-axis", color=plot_utils.CBF_COLOR_CYCLE[2])
+
+    def plot_data(self):
+        station_idx = self.data.index[0]
+        event_name = self.data[self.dataset_labels.event_name][station_idx]
+        event_id = self.data[self.dataset_labels.event_id][station_idx]
+        station_id = self.data[self.dataset_labels.smartphone_id][station_idx]
+        print(f"\nEvent name: {event_name}, event ID number: {event_id}, station ID: {station_id}")
+        source_yield = self.data[self.dataset_labels.source_yield_kg][station_idx]
+        title_header = f"SHAReD event {event_name}"
+        if source_yield is None:
+            title_header += " source yield not included"
+        else:
+            title_header += f" {source_yield} kg TNT eq."
+        # We'll plot the data from each sensor for both the "explosion" and "ambient" segments of data.
+        t000 = self.data[self.dataset_labels.explosion_detonation_time][station_idx]
+        t00 = self.data[self.dataset_labels.microphone_time_s][station_idx][0] - t000
+        dt0 = self.data[self.dataset_labels.microphone_time_s][station_idx][-1] - t000
+        dist_m = self.data[self.dataset_labels.distance_from_explosion_m][station_idx]
+
+        title_line2 = (f"\nDistance from source: {int(dist_m)} m, scaled distance: "
+                       f"{self.data[self.dataset_labels.scaled_distance][station_idx]:.2f} m/kg^(1/3)")
+
+        self.shared_plot.set_fig_title(f"Normalized signals from {title_header}{title_line2}")
+        self.plot_sensor_data(station_idx, s_type="base")
+        self.shared_plot.ax[2, 1].legend()
+        self.shared_plot.touch_up_plot(t00, dt0, "base")
+        
+        t10 = self.data[self.dataset_labels.ambient_microphone_time_s][station_idx][0]
+        dt1 = self.data[self.dataset_labels.ambient_microphone_time_s][station_idx][-1] - t10
+        self.plot_sensor_data(station_idx, s_type="ambient")
+        self.shared_plot.touch_up_plot(0, dt1, "ambient")
+
+
+if __name__=="__main__":
+    ar = SHAReDReader(PATH_TO_PKL, TUTORIAL_PICKLE_FILE_NAME)
+    ar.load_data()
+    ar.print_metadata()
+    ar.plot_data()
+    plt.show()

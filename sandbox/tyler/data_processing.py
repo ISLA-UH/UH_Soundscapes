@@ -4,6 +4,11 @@ This module contains utility functions for processing data.
 import numpy as np
 
 
+def demean_norm(signal: np.ndarray) -> np.ndarray:
+    signal = signal - np.nanmean(signal)
+    return signal / np.nanmax(np.abs(signal))
+
+
 def rolling_mean(signal: np.ndarray, window_size: int = 13) -> np.ndarray:
     """
     Calculate the rolling mean of a signal using a specified window size.

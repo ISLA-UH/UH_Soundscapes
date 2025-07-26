@@ -27,7 +27,7 @@ class PlotBase:
         self.ticks =[]
         self.tick_labels = []
         self.font_size = 12
-        self.marker_lines_ylim = (self.y_adj - self.y_adj_buff / 2, self.y_adj + self.y_adj_buff / 2)
+        self.base_ylim = (self.y_adj - self.y_adj_buff / 2, self.y_adj + self.y_adj_buff / 2)
         self.marker_lines_zorder = 10
         self.waveform_color = "k"
     

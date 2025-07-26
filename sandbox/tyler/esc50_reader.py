@@ -91,7 +91,7 @@ class ESC50Plot(plot_utils.PlotBase):
         :param sample_rate: Sampling rate of the audio data.
         :param ax1_ymax: Maximum y-value for the second subplot.
         """        
-        self.ax[0].set(ylim=self.marker_lines_ylim)
+        self.ax[0].set(ylim=self.base_ylim)
         self.ax[0].set_title(title, fontsize=self.font_size + 2)
         self.ax[1].set(xlim=(0, sample_rate / 2), ylim=(0, ax1_ymax * 1.05))
         self.ax[1].set_xlabel("Frequency (Hz)", fontsize=self.font_size)
@@ -149,9 +149,11 @@ class ESC50Reader(dsr.DatasetReader):
         print(f"\tEach of the {n_signals} rows in the pandas DataFrame contains an audio waveform, the ID number of")
         print(f"\tthe Freesound clip it was taken from, the sampling frequency the audio was downsampled to, the")
         print(f"\tESC-50 class name and associated target class number, and the name of the top class predicted when")
-        print("\tYAMNet is run on the sample")
-        print(f"{'' if self.sample_rate == 16000 else ' (after upsampling from {self.sample_rate} to 16kHz)'}.\n")
-    
+        line = ("\tYAMNet is run on the sample")
+        if self.sample_rate != 16000:
+            line += (f" (after upsampling from {self.sample_rate} to 16kHz)")
+        print(line)
+
     def get_sample_waveform(self, idx: int) -> np.ndarray:
         """
         Get the sample waveform at a given index.
