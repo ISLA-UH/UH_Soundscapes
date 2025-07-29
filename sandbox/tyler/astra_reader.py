@@ -169,11 +169,11 @@ class ASTRAReader(dsr.DatasetReader, dsr.PlotBase):
         Print the metadata of the dataset.
         """
         # We can get some details about the dataset and print them out
-        num_ids = len(self.get_unique_event_ids()[0])
+        unique_id_counts = self.get_unique_event_ids()
+        num_ids = len(unique_id_counts[0])
         len_data = len(self.data)
         print(f"This dataset contains {len_data} recording{'s' if len_data != 1 else ''} "
               f"from {num_ids} unique launch event{'s' if num_ids != 1 else ''}.")
-        unique_id_counts = self.get_unique_event_ids()
         for launch_id, count in zip(unique_id_counts[0], unique_id_counts[1]):
             launch_df = self.data[self.data[self.dataset_labels.event_id] == launch_id]
             rocket_type = launch_df[self.dataset_labels.rocket_type][launch_df.index[0]]

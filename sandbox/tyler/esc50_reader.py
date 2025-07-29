@@ -162,7 +162,7 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
 
         # calculate and plot the Welch power spectral density (PSD)
         nperseg = self.sample_rate * 0.48  # 0.48 seconds per segment
-        psd_freq, Pxx_den = signal.welch(sample_waveform, self.sample_rate, nperseg=nperseg)
+        psd_freq, psd = signal.welch(sample_waveform, self.sample_rate, nperseg=nperseg)
 
         print(f"\tPlotting sample {sample_idx} from the {self.sample_rate} Hz ESC-50 dataset...\n")
         # Figure set-up
@@ -172,8 +172,8 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
                 f"{' after upsampling' if self.sample_rate < 16000.0 else ''}: {sample_yamnet_class}"
         # Plot the waveforms
         self.ax[0].plot(time_array, sample_waveform, lw=1, color=self.waveform_color)
-        self.ax[1].plot(psd_freq, Pxx_den, lw=1, color=self.waveform_color)
-        self.touch_up_plot(xlabel, title, sample_fs, np.max(Pxx_den))
+        self.ax[1].plot(psd_freq, psd, lw=1, color=self.waveform_color)
+        self.touch_up_plot(xlabel, title, sample_fs, np.max(psd))
 
         if self.show_frequency_plots:
             print(f"\tPlotting the PSD of sample {sample_idx} from the {self.sample_rate} Hz ESC-50 dataset...\n")
