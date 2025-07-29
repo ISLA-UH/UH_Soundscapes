@@ -1,5 +1,8 @@
 """
 SHAReD Explosions Reader using DatasetReader class
+
+IDE note: inherited classes aren't properly recognized, so the IDE may not recognize
+            some properties or methods.
 """
 import os
 from typing import Tuple
@@ -140,17 +143,15 @@ class SHAReDReader(dsr.DatasetReader, dsr.PlotBase):
         else:
             ax_idx = 1
             title_type = "Explosion"
+        self.ax[2, 1].legend()
+        for i in range(3):
+            self.ax[i, ax_idx].tick_params(axis="y", labelsize="large", left=True, labelleft=True)
+            self.ax[i, ax_idx].set_ylabel("Norm", fontsize=self.font_size)
         self.ax[0, ax_idx].set(xlim=(xmin, xmax), ylim=self.base_ylim)
-        self.ax[0, ax_idx].tick_params(axis="y", labelsize="large", left=True, labelleft=True)
         self.ax[0, ax_idx].set_title(f"{title_type} microphone", fontsize=self.font_size)
-        self.ax[0, ax_idx].set_ylabel("Norm", fontsize=self.font_size)
         self.ax[1, ax_idx].set_title(f"{title_type} barometer", fontsize=self.font_size)
-        self.ax[1, ax_idx].tick_params(axis="y", labelsize="large", left=True, labelleft=True)
-        self.ax[1, ax_idx].set_ylabel("Norm", fontsize=self.font_size)
         self.ax[2, ax_idx].set_title(f"{title_type} accelerometer", fontsize=self.font_size)
-        self.ax[2, ax_idx].tick_params(axis="y", labelsize="large", left=True, labelleft=True)
         self.ax[2, ax_idx].tick_params(axis="x", which="both", bottom=True, labelbottom=True, labelsize="large")
-        self.ax[2, ax_idx].set_ylabel("Norm", fontsize=self.font_size)
         self.ax[2, ax_idx].set_xlabel(f"Time (s){' since event' if s_type == 'base' else ''}", fontsize=self.font_size)
         plt.subplots_adjust(hspace=0.3)
 
@@ -205,9 +206,9 @@ class SHAReDReader(dsr.DatasetReader, dsr.PlotBase):
         else:
             title_header += f" {source_yield} kg TNT eq."
         # We'll plot the data from each sensor for both the "explosion" and "ambient" segments of data.
-        t000 = self.data[self.dataset_labels.explosion_detonation_time][station_idx]
-        t00 = self.data[self.dataset_labels.microphone_time_s][station_idx][0] - t000
-        dt0 = self.data[self.dataset_labels.microphone_time_s][station_idx][-1] - t000
+        detonation_ts = self.data[self.dataset_labels.explosion_detonation_time][station_idx]
+        start_audio_ts = self.data[self.dataset_labels.microphone_time_s][station_idx][0] - detonation_ts
+        end_audio_ts = self.data[self.dataset_labels.microphone_time_s][station_idx][-1] - detonation_ts
         dist_m = self.data[self.dataset_labels.distance_from_explosion_m][station_idx]
 
         title_line2 = (f"\nDistance from source: {int(dist_m)} m, scaled distance: "
@@ -215,8 +216,7 @@ class SHAReDReader(dsr.DatasetReader, dsr.PlotBase):
 
         self.fig.suptitle(f"Normalized signals from {title_header}{title_line2}", fontsize=self.font_size + 2)
         self.plot_sensor_data(station_idx, s_type="base")
-        self.ax[2, 1].legend()
-        self.touch_up_plot(t00, dt0, "base")
+        self.touch_up_plot(start_audio_ts, end_audio_ts, "base")
         
         t10 = self.data[self.dataset_labels.ambient_microphone_time_s][station_idx][0]
         dt1 = self.data[self.dataset_labels.ambient_microphone_time_s][station_idx][-1] - t10

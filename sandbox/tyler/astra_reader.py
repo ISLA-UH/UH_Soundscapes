@@ -1,5 +1,8 @@
 """
 ASTRA Reader using DatasetReader class
+
+IDE note: inherited classes aren't properly recognized, so the IDE may not recognize
+            some properties or methods.
 """
 from datetime import datetime, timezone
 import os

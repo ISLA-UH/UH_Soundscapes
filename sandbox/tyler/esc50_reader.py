@@ -1,5 +1,8 @@
 """
 ESC50 Reader using DatasetReader class
+
+IDE note: inherited classes aren't properly recognized, so the IDE may not recognize
+            some properties or methods.
 """
 import os
 from typing import Tuple
