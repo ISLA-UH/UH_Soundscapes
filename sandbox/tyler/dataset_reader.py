@@ -21,7 +21,7 @@ class PlotBase:
     """
     Base class for plotting utilities.
     """
-    def __init__(self, fig_size: Tuple[int, int]):
+    def __init__(self, fig_size: Tuple[int, int], nrows: int = 1, ncols: int = 1):
         """
         Initialize the base plot class with default parameters.
 
@@ -38,8 +38,11 @@ class PlotBase:
         self.waveform_color: str = "k"
         self.fig_size: Tuple[int, int] = fig_size
         self.cbf_colors: List[str] = CBF_COLOR_CYCLE
-        self.fig, self.ax = plt.subplots(figsize=self.fig_size)
-    
+        if nrows > 1 or ncols > 1:
+            self.fig, self.ax = plt.subplots(nrows=nrows, ncols=ncols, figsize=self.fig_size)
+        else:
+            self.fig, self.ax = plt.subplots(figsize=self.fig_size)
+
     def plot_tfr(self, tfr_title: str, station_id: str, fs: float, timestamps: np.ndarray, data: np.ndarray) -> Figure:
         """
         Plot the time-frequency representation (TFR) of the given data.
@@ -64,16 +67,6 @@ class PlotBase:
             mesh_panel_b_tfr=cwt_bits,
             figure_title=tfr_title,
         )
-    
-    def set_subplots(self, nrows: int = 1, ncols: int = 1):
-        """
-        Resets the subplots for the plot.  Use this if you need more than the default number of subplots.
-
-        :param nrows: Number of rows in the subplot grid.
-        :param ncols: Number of columns in the subplot grid.
-        """
-        plt.close()  # remove any existing figures
-        self.fig, self.ax = plt.subplots(nrows=nrows, ncols=ncols, figsize=self.fig_size)
 
 
 class DatasetLabels:

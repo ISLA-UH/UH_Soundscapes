@@ -82,8 +82,7 @@ class SHAReDReader(dsr.DatasetReader, dsr.PlotBase):
         :param fig_size: size of the figure for plotting. Default is (10, 7).
         """
         dsr.DatasetReader.__init__(self, "SHAReD Explosions", input_path, default_filename, SHAReDLabels(), save_path)
-        dsr.PlotBase.__init__(self, fig_size)
-        self.set_subplots(subplots_rows, subplots_cols)
+        dsr.PlotBase.__init__(self, fig_size, subplots_rows, subplots_cols)
 
     def load_data(self):
         """

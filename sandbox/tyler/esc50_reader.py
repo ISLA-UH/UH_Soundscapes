@@ -75,8 +75,7 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         :param fig_size: Tuple of (width, height) for the figure size. Default is (10, 7).
         """
         dsr.DatasetReader.__init__(self, "ESC50", input_path, default_filename, ESC50Labels(), save_path)
-        dsr.PlotBase.__init__(self, fig_size)
-        self.set_subplots(subplots_rows, subplots_cols)
+        dsr.PlotBase.__init__(self, fig_size, subplots_rows, subplots_cols)
         self.show_frequency_plots = show_frequency_plots
         self.sample_rate = 0.
 
@@ -122,8 +121,6 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         :param freqs: Frequencies for the PSD plot.
         :param psd: Power spectral density values corresponding to the frequencies.
         """
-        self.ax[0].plot(wf_timestamps, sample_waveform, lw=1, color=self.waveform_color)
-        self.ax[1].plot(freqs, psd, lw=1, color=self.waveform_color)
 
     def touch_up_plot(self, xlabel: str, title: str, sample_rate: float, ax1_ymax: float):
         """
@@ -162,7 +159,7 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
 
         # calculate and plot the Welch power spectral density (PSD)
         nperseg = self.sample_rate * 0.48  # 0.48 seconds per segment
-        f, Pxx_den = signal.welch(sample_waveform, self.sample_rate, nperseg=nperseg)
+        psd_freq, Pxx_den = signal.welch(sample_waveform, self.sample_rate, nperseg=nperseg)
 
         print(f"\tPlotting sample {sample_idx} from the {self.sample_rate} Hz ESC-50 dataset...\n")
         # Figure set-up
@@ -170,11 +167,11 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         title = f"ESC-50 audio downsampled to {int(self.sample_rate)}Hz\n" \
                 f"True class: {sample_esc50_class}\nClass predicted by YAMNet" \
                 f"{' after upsampling' if self.sample_rate < 16000.0 else ''}: {sample_yamnet_class}"
-        # Plot the waveform
-        self.plot_event(time_array, sample_waveform, f, Pxx_den)
+        # Plot the waveforms
+        self.ax[0].plot(time_array, sample_waveform, lw=1, color=self.waveform_color)
+        self.ax[1].plot(psd_freq, Pxx_den, lw=1, color=self.waveform_color)
         self.touch_up_plot(xlabel, title, sample_fs, np.max(Pxx_den))
 
-        plt.subplots_adjust()
         if self.show_frequency_plots:
             print(f"\tPlotting the PSD of sample {sample_idx} from the {self.sample_rate} Hz ESC-50 dataset...\n")
             tfr_title = f"CWT and waveform from ESC-50 PKL index {sample_idx} (clip ID {self.get_event_id()})"
