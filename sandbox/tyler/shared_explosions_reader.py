@@ -9,13 +9,13 @@ import numpy as np
 
 from data_processing import demean_norm
 import dataset_reader as dsr
-import plot_utils as plot_utils
 
 TUTORIAL_PICKLE_FILE_NAME = "SHAReD_tutorial.pkl"
 CURRENT_DIRECTORY = os.getcwd()
 PATH_TO_TUTORIAL_PKL = os.path.join(CURRENT_DIRECTORY, TUTORIAL_PICKLE_FILE_NAME)
 # PATH_TO_PKL = PATH_TO_TUTORIAL_PKL
 PATH_TO_PKL = "/Users/tyler/IdeaProjects/UH_Soundscapes/sandbox/sarah/SHAReD_tutorial.pkl"
+
 
 class SHAReDLabels(dsr.DatasetLabels):
     """
@@ -59,66 +59,13 @@ class SHAReDLabels(dsr.DatasetLabels):
         self.effective_yield_category: str = "effective_yield_category"
 
 
-class SHAReDPlot(plot_utils.PlotBase):
-    def __init__(self, fig_size: Tuple[int, int] = (10, 7), subplots_rows: int = 1, subplots_cols: int = 1) -> None:
-        """
-        Initialize the ASTRA plot class with default parameters.
-
-        :param fig_size: Tuple of (width, height) for the figure size.  Default is (10, 7).
-        :param subplots_rows: Number of rows in the subplots. Default is 1.
-        :param subplots_cols: Number of columns in the subplots. Default is 1.
-        """
-        super().__init__(fig_size)
-        self.fig, self.ax = plt.subplots(subplots_rows, subplots_cols, figsize=fig_size)
-
-    def set_fig_title(self, title: str):
-        """
-        Set the figure title.
-
-        :param title: The title to set for the figure.
-        """
-        self.fig.suptitle(title, fontsize=self.font_size + 2)
-
-    def touch_up_plot(self, xmin: float, xmax: float, s_type: str = "base"):
-        """
-        Final adjustments to the plot, such as setting labels and limits.
-
-        :param xmin: Minimum x-axis limit.
-        :param xmax: Maximum x-axis limit.
-        :param s_type: Sensor classification type. Default is "base". Unrecognized options will default to "base".
-        """
-        if s_type.lower() != "ambient":
-            s_type = "base"
-        if s_type == "ambient":
-            ax_idx = 0
-            title_type = "Ambient"
-        else:
-            ax_idx = 1
-            title_type = "Explosion"
-        self.ax[0, ax_idx].set(xlim=(xmin, xmax), ylim=self.base_ylim)
-        self.ax[0, ax_idx].tick_params(axis="y", labelsize="large", left=True, labelleft=True)
-        self.ax[0, ax_idx].set_title(f"{title_type} microphone", fontsize=self.font_size)
-        self.ax[0, ax_idx].set_ylabel("Norm", fontsize=self.font_size)
-        self.ax[1, ax_idx].set_title(f"{title_type} barometer", fontsize=self.font_size)
-        self.ax[1, ax_idx].tick_params(axis="y", labelsize="large", left=True, labelleft=True)
-        self.ax[1, ax_idx].set_ylabel("Norm", fontsize=self.font_size)
-        self.ax[2, ax_idx].set_title(f"{title_type} accelerometer", fontsize=self.font_size)
-        self.ax[2, ax_idx].tick_params(axis="y", labelsize="large", left=True, labelleft=True)
-        self.ax[2, ax_idx].tick_params(axis="x", which="both", bottom=True, labelbottom=True, labelsize="large")
-        self.ax[2, ax_idx].set_ylabel("Norm", fontsize=self.font_size)
-        self.ax[2, ax_idx].set_xlabel(f"Time (s){' since event' if s_type == 'base' else ''}", fontsize=self.font_size)
-        plt.subplots_adjust(hspace=0.3)
-
-
-class SHAReDReader(dsr.DatasetReader):
+class SHAReDReader(dsr.DatasetReader, dsr.PlotBase):
     """
     A class to read and analyze the SHAReD Explosions dataset.
 
     Inherits from DatasetReader and uses SHAReDLabels for column names.
     """
-    def __init__(self, input_path: str, default_filename: str, show_info: bool = True, 
-                 show_waveform_plots: bool = True, show_frequency_plots: bool = True,
-                 save_data: bool = True, save_path: str = ".", subplots_rows: int = 3, 
+    def __init__(self, input_path: str, default_filename: str, save_path: str = ".", subplots_rows: int = 3, 
                  subplots_cols: int = 2, fig_size: Tuple[int, int] = (10, 7)):
         """
         Initialize the SHAReDReader with the path to the dataset.
@@ -134,9 +81,9 @@ class SHAReDReader(dsr.DatasetReader):
         :param subplots_cols: number of columns in the subplots. Default is 2.
         :param fig_size: size of the figure for plotting. Default is (10, 7).
         """
-        super().__init__("SHAReD Explosions", input_path, default_filename, SHAReDLabels(),
-                         show_info, show_waveform_plots, show_frequency_plots, save_data, save_path)
-        self.shared_plot = SHAReDPlot(fig_size, subplots_rows, subplots_cols)
+        dsr.DatasetReader.__init__(self, "SHAReD Explosions", input_path, default_filename, SHAReDLabels(), save_path)
+        dsr.PlotBase.__init__(self, fig_size)
+        self.set_subplots(subplots_rows, subplots_cols)
 
     def load_data(self):
         """
@@ -180,6 +127,34 @@ class SHAReDReader(dsr.DatasetReader):
         print(f"\nExample event name: {event_name}, event ID number: {event_id}")
         print(f"{source_yield} kg TNT eq. detonation recorded by station {smartphone_id} at {round(dist_m)}m range.")
 
+    def touch_up_plot(self, xmin: float, xmax: float, s_type: str = "base"):
+        """
+        Final adjustments to the plot, such as setting labels and limits.
+
+        :param xmin: Minimum x-axis limit.
+        :param xmax: Maximum x-axis limit.
+        :param s_type: Sensor classification type. Default is "base". Unrecognized options will default to "base".
+        """
+        if s_type.lower() == "ambient":
+            ax_idx = 0
+            title_type = "Ambient"
+        else:
+            ax_idx = 1
+            title_type = "Explosion"
+        self.ax[0, ax_idx].set(xlim=(xmin, xmax), ylim=self.base_ylim)
+        self.ax[0, ax_idx].tick_params(axis="y", labelsize="large", left=True, labelleft=True)
+        self.ax[0, ax_idx].set_title(f"{title_type} microphone", fontsize=self.font_size)
+        self.ax[0, ax_idx].set_ylabel("Norm", fontsize=self.font_size)
+        self.ax[1, ax_idx].set_title(f"{title_type} barometer", fontsize=self.font_size)
+        self.ax[1, ax_idx].tick_params(axis="y", labelsize="large", left=True, labelleft=True)
+        self.ax[1, ax_idx].set_ylabel("Norm", fontsize=self.font_size)
+        self.ax[2, ax_idx].set_title(f"{title_type} accelerometer", fontsize=self.font_size)
+        self.ax[2, ax_idx].tick_params(axis="y", labelsize="large", left=True, labelleft=True)
+        self.ax[2, ax_idx].tick_params(axis="x", which="both", bottom=True, labelbottom=True, labelsize="large")
+        self.ax[2, ax_idx].set_ylabel("Norm", fontsize=self.font_size)
+        self.ax[2, ax_idx].set_xlabel(f"Time (s){' since event' if s_type == 'base' else ''}", fontsize=self.font_size)
+        plt.subplots_adjust(hspace=0.3)
+
     def plot_sensor_data(self, station_idx: int, s_type: str = "base"):
         """
         Plot sensor data for a specific station.  Uses the s_type to determine which sensors to plot.
@@ -204,19 +179,19 @@ class SHAReDReader(dsr.DatasetReader):
                       self.dataset_labels.accelerometer_time_s, self.dataset_labels.accelerometer_data_x,
                       self.dataset_labels.accelerometer_data_y, self.dataset_labels.accelerometer_data_z]
             start_time = self.data[self.dataset_labels.explosion_detonation_time][station_idx]
-        self.shared_plot.ax[0, index].plot(self.data[labels[0]][station_idx] - start_time,
-                                           demean_norm(self.data[labels[1]][station_idx]), lw=1, color="k")
-        self.shared_plot.ax[1, index].plot(self.data[labels[2]][station_idx] - start_time,
-                                           demean_norm(self.data[labels[3]][station_idx]), lw=1, color="k")
-        self.shared_plot.ax[2, index].plot(self.data[labels[4]][station_idx] - start_time,
-                                           demean_norm(self.data[labels[5]][station_idx]),
-                                           lw=1, label="x-axis", color=plot_utils.CBF_COLOR_CYCLE[0])
-        self.shared_plot.ax[2, index].plot(self.data[labels[4]][station_idx] - start_time,
-                                           demean_norm(self.data[labels[6]][station_idx]),
-                                           lw=1, label="y-axis", color=plot_utils.CBF_COLOR_CYCLE[1])
-        self.shared_plot.ax[2, index].plot(self.data[labels[4]][station_idx] - start_time,
-                                           demean_norm(self.data[labels[7]][station_idx]),
-                                           lw=1, label="z-axis", color=plot_utils.CBF_COLOR_CYCLE[2])
+        self.ax[0, index].plot(self.data[labels[0]][station_idx] - start_time,
+                               demean_norm(self.data[labels[1]][station_idx]), lw=1, color="k")
+        self.ax[1, index].plot(self.data[labels[2]][station_idx] - start_time,
+                               demean_norm(self.data[labels[3]][station_idx]), lw=1, color="k")
+        self.ax[2, index].plot(self.data[labels[4]][station_idx] - start_time,
+                               demean_norm(self.data[labels[5]][station_idx]),
+                               lw=1, label="x-axis", color=dsr.CBF_COLOR_CYCLE[0])
+        self.ax[2, index].plot(self.data[labels[4]][station_idx] - start_time,
+                               demean_norm(self.data[labels[6]][station_idx]),
+                               lw=1, label="y-axis", color=dsr.CBF_COLOR_CYCLE[1])
+        self.ax[2, index].plot(self.data[labels[4]][station_idx] - start_time,
+                               demean_norm(self.data[labels[7]][station_idx]),
+                               lw=1, label="z-axis", color=dsr.CBF_COLOR_CYCLE[2])
 
     def plot_data(self):
         station_idx = self.data.index[0]
@@ -239,15 +214,15 @@ class SHAReDReader(dsr.DatasetReader):
         title_line2 = (f"\nDistance from source: {int(dist_m)} m, scaled distance: "
                        f"{self.data[self.dataset_labels.scaled_distance][station_idx]:.2f} m/kg^(1/3)")
 
-        self.shared_plot.set_fig_title(f"Normalized signals from {title_header}{title_line2}")
+        self.fig.suptitle(f"Normalized signals from {title_header}{title_line2}", fontsize=self.font_size + 2)
         self.plot_sensor_data(station_idx, s_type="base")
-        self.shared_plot.ax[2, 1].legend()
-        self.shared_plot.touch_up_plot(t00, dt0, "base")
+        self.ax[2, 1].legend()
+        self.touch_up_plot(t00, dt0, "base")
         
         t10 = self.data[self.dataset_labels.ambient_microphone_time_s][station_idx][0]
         dt1 = self.data[self.dataset_labels.ambient_microphone_time_s][station_idx][-1] - t10
         self.plot_sensor_data(station_idx, s_type="ambient")
-        self.shared_plot.touch_up_plot(0, dt1, "ambient")
+        self.touch_up_plot(0, dt1, "ambient")
 
 
 if __name__=="__main__":

@@ -10,7 +10,6 @@ from scipy import signal
 
 from data_processing import rolling_mean
 import dataset_reader as dsr
-import plot_utils as plot_utils
 
 TUTORIAL_PICKLE_FILE_NAME_800HZ = "esc50_tutorial_800Hz.pkl"
 TUTORIAL_PICKLE_FILE_NAME_16KHZ = "esc50_tutorial_16kHz.pkl"
@@ -55,20 +54,64 @@ class ESC50Labels(dsr.DatasetLabels):
         self.yamnet_predicted_class = yamnet_predicted_class
 
 
-class ESC50Plot(plot_utils.PlotBase):
+class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
     """
-    A class to plot ESC50 data using the BasePlot class.
-    """
-    def __init__(self, fig_size: Tuple[int, int] = (10, 7), subplots_rows: int = 1, subplots_cols: int = 1) -> None:
-        """
-        Initialize the ESC50 plot class with default parameters.
+    A class to read and analyze the ESC50 dataset.
 
-        :param fig_size: Tuple of (width, height) for the figure size.  Default is (10, 7).
+    Inherits from DatasetReader and uses ESC50Labels for column names.
+    """
+    def __init__(self, input_path: str, default_filename: str, show_frequency_plots: bool = True, 
+                 save_path: str = ".", subplots_rows: int = 2, subplots_cols: int = 1, 
+                 fig_size: Tuple[int, int] = (10, 7)) -> None:
+        """
+        Initialize the SHAReDReader with the path to the dataset.
+
+        :param input_path: path to the dataset file
+        :param default_filename: default filename to use if the input file is not found
+        :param show_frequency_plots: if True, display frequency plots. Default True.
+        :param save_path: path to save the processed data. Default current directory.
         :param subplots_rows: Number of rows in the subplot grid. Default is 1.
         :param subplots_cols: Number of columns in the subplot grid. Default is 1
+        :param fig_size: Tuple of (width, height) for the figure size. Default is (10, 7).
         """
-        super().__init__(fig_size)
-        self.fig, self.ax = plt.subplots(subplots_rows, subplots_cols, figsize=fig_size)
+        dsr.DatasetReader.__init__(self, "ESC50", input_path, default_filename, ESC50Labels(), save_path)
+        dsr.PlotBase.__init__(self, fig_size)
+        self.set_subplots(subplots_rows, subplots_cols)
+        self.show_frequency_plots = show_frequency_plots
+        self.sample_rate = 0.
+
+    def load_data(self):
+        """
+        Load the ASTRA dataset from the input_path.
+        """
+        super().load_data()
+        self.sample_rate = int(self.data[self.dataset_labels.audio_fs].iloc[0])
+
+    def print_metadata(self):
+        """
+        Print metadata about the dataset.
+        """
+        print(f"\nESC-50 dataset at {self.sample_rate}Hz:\n")
+        # get some details about the dataset and print them out
+        n_signals = len(self.data)
+        n_clips = len(np.unique(self.data[self.dataset_labels.event_id]))
+        print(f"\tThis dataset contains {n_signals} 5 s long samples from {n_clips} different Freesound audio clips.\n")
+        print(f"\tEach of the {n_signals} rows in the pandas DataFrame contains an audio waveform, the ID number of")
+        print(f"\tthe Freesound clip it was taken from, the sampling frequency the audio was downsampled to, the")
+        print(f"\tESC-50 class name and associated target class number, and the name of the top class predicted when")
+        last_line = ("\tYAMNet is run on the sample")
+        if self.sample_rate != 16000:
+            last_line += (f" (after upsampling from {self.sample_rate} to 16kHz)")
+        print(last_line)
+
+    def get_sample_waveform(self, idx: int) -> np.ndarray:
+        """
+        Get the sample waveform at a given index.
+
+        :param idx: Index of the sample in the dataset.
+        :return: The waveform as a NumPy array.
+        """
+        return self.data[self.dataset_labels.audio_data][self.data.index[idx]]
 
     def plot_event(self, wf_timestamps: np.ndarray, sample_waveform: np.ndarray, freqs: np.ndarray, psd: np.ndarray):
         """
@@ -100,69 +143,6 @@ class ESC50Plot(plot_utils.PlotBase):
         self.ax[0].set_ylabel("Normalized waveform", fontsize=self.font_size)
         plt.subplots_adjust()
 
-
-class ESC50Reader(dsr.DatasetReader):
-    """
-    A class to read and analyze the ESC50 dataset.
-
-    Inherits from DatasetReader and uses ESC50Labels for column names.
-    """
-    def __init__(self, input_path: str, default_filename: str, show_info: bool = True, 
-                 show_waveform_plots: bool = True, show_frequency_plots: bool = True,
-                 save_data: bool = True, save_path: str = ".", subplots_rows: int = 2, 
-                 subplots_cols: int = 1, fig_size: Tuple[int, int] = (10, 7)) -> None:
-        """
-        Initialize the SHAReDReader with the path to the dataset.
-
-        :param input_path: path to the dataset file
-        :param default_filename: default filename to use if the input file is not found
-        :param show_info: if True, display dataset information. Default True.
-        :param show_waveform_plots: if True, display waveform plots. Default True.
-        :param show_frequency_plots: if True, display frequency plots. Default True.
-        :param save_data: if True, save the processed data to a file. Default True.
-        :param save_path: path to save the processed data. Default current directory.
-        :param subplots_rows: Number of rows in the subplot grid. Default is 1.
-        :param subplots_cols: Number of columns in the subplot grid. Default is 1
-        :param fig_size: Tuple of (width, height) for the figure size. Default is (10, 7).
-        """
-        super().__init__("ESC50", input_path, default_filename, ESC50Labels(),
-                         show_info, show_waveform_plots, show_frequency_plots, save_data, save_path)
-        self.esc50_plot = ESC50Plot(fig_size, subplots_rows, subplots_cols)
-        self.sample_rate = 0.
-
-    def load_data(self):
-        """
-        Load the ASTRA dataset from the input_path.
-        """
-        super().load_data()
-        self.sample_rate = int(self.data[self.dataset_labels.audio_fs].iloc[0])
-
-    def print_metadata(self):
-        """
-        Print metadata about the dataset.
-        """
-        print(f"\nESC-50 dataset at {self.sample_rate}Hz:\n")
-        # get some details about the dataset and print them out
-        n_signals = len(self.data)
-        n_clips = len(np.unique(self.data[self.dataset_labels.event_id]))
-        print(f"\tThis dataset contains {n_signals} 5 s long samples from {n_clips} different Freesound audio clips.\n")
-        print(f"\tEach of the {n_signals} rows in the pandas DataFrame contains an audio waveform, the ID number of")
-        print(f"\tthe Freesound clip it was taken from, the sampling frequency the audio was downsampled to, the")
-        print(f"\tESC-50 class name and associated target class number, and the name of the top class predicted when")
-        line = ("\tYAMNet is run on the sample")
-        if self.sample_rate != 16000:
-            line += (f" (after upsampling from {self.sample_rate} to 16kHz)")
-        print(line)
-
-    def get_sample_waveform(self, idx: int) -> np.ndarray:
-        """
-        Get the sample waveform at a given index.
-
-        :param idx: Index of the sample in the dataset.
-        :return: The waveform as a NumPy array.
-        """
-        return self.data[self.dataset_labels.audio_data][self.data.index[idx]]
-
     def plot_waveforms(self, idx: int):
         """
         Plot the waveforms of the dataset at the given index.
@@ -191,14 +171,15 @@ class ESC50Reader(dsr.DatasetReader):
                 f"True class: {sample_esc50_class}\nClass predicted by YAMNet" \
                 f"{' after upsampling' if self.sample_rate < 16000.0 else ''}: {sample_yamnet_class}"
         # Plot the waveform
-        self.esc50_plot.plot_event(time_array, sample_waveform, f, Pxx_den)
-        self.esc50_plot.touch_up_plot(xlabel, title, sample_fs, np.max(Pxx_den))
+        self.plot_event(time_array, sample_waveform, f, Pxx_den)
+        self.touch_up_plot(xlabel, title, sample_fs, np.max(Pxx_den))
 
         plt.subplots_adjust()
         if self.show_frequency_plots:
             print(f"\tPlotting the PSD of sample {sample_idx} from the {self.sample_rate} Hz ESC-50 dataset...\n")
             tfr_title = f"CWT and waveform from ESC-50 PKL index {sample_idx} (clip ID {self.get_event_id()})"
-            _ = self.esc50_plot.plot_tfr(tfr_title, "", sample_fs, time_array, sample_waveform)
+            _ = self.plot_tfr(tfr_title, "", sample_fs, time_array, sample_waveform)
+
 
 if __name__=="__main__":
     import random

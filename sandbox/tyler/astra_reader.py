@@ -87,7 +87,7 @@ class ASTRAReader(dsr.DatasetReader, dsr.PlotBase):
     """
     A class to read and analyze the ASTRA dataset.
 
-    Inherits from DatasetReader and uses ASTRALabels for column names.
+    Inherits from DatasetReader and PlotBase and uses ASTRALabels for column names.
     """
     def __init__(self, input_path: str, default_filename: str, show_frequency_plots: bool = True,
                  save_path: str = ".", fig_size: Tuple[int, int] = (10, 7)):
@@ -160,12 +160,6 @@ class ASTRAReader(dsr.DatasetReader, dsr.PlotBase):
         self.ax.tick_params(axis="x", which="both", bottom=True, labelbottom=True, labelsize="large")
         self.ax.legend(frameon=False, bbox_to_anchor=(.99, .99), loc='upper right', fontsize=self.font_size)
         plt.subplots_adjust()
-
-    def load_data(self):
-        """
-        Load the ASTRA dataset from the input_path.
-        """
-        super().load_data()
         
     def print_metadata(self):
         """

@@ -1,11 +1,10 @@
 """
 Generic dataset reader
 Assumes the dataset can be read via pickle and is a pandas dataframe.
-Make inherited versions of this class for specific datasets.
+Make inherited versions of the classes for specific datasets.
 """
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Tuple
 
-from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import numpy as np
@@ -68,7 +67,7 @@ class PlotBase:
     
     def set_subplots(self, nrows: int = 1, ncols: int = 1):
         """
-        Set up subplots for the plot.  Only use if you need more than one subplot.
+        Resets the subplots for the plot.  Use this if you need more than the default number of subplots.
 
         :param nrows: Number of rows in the subplot grid.
         :param ncols: Number of columns in the subplot grid.
@@ -117,12 +116,6 @@ class DatasetReader:
         default_filename: str, default filename to use if the input file is not found.
 
         dataset_labels: DatasetLabels, labels for the dataset.
-
-        show_info: bool, if True, display dataset information.  Default True.
-
-        show_waveform_plots: bool, if True, display waveform plots. Default True.
-
-        show_frequency_plots: bool, if True, display frequency plots. Default True.
 
         save_data: bool, if True, save the processed data to a file. Default True.
 
