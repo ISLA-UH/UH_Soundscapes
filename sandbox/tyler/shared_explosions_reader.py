@@ -16,8 +16,7 @@ import dataset_reader as dsr
 TUTORIAL_PICKLE_FILE_NAME = "SHAReD_tutorial.pkl"
 CURRENT_DIRECTORY = os.getcwd()
 PATH_TO_TUTORIAL_PKL = os.path.join(CURRENT_DIRECTORY, TUTORIAL_PICKLE_FILE_NAME)
-# PATH_TO_PKL = PATH_TO_TUTORIAL_PKL
-PATH_TO_PKL = "/Users/tyler/IdeaProjects/UH_Soundscapes/sandbox/sarah/SHAReD_tutorial.pkl"
+PATH_TO_PKL = PATH_TO_TUTORIAL_PKL
 
 
 class SHAReDLabels(dsr.DatasetLabels):
@@ -218,10 +217,10 @@ class SHAReDReader(dsr.DatasetReader, dsr.PlotBase):
         self.plot_sensor_data(station_idx, s_type="base")
         self.touch_up_plot(start_audio_ts, end_audio_ts, "base")
         
-        t10 = self.data[self.dataset_labels.ambient_microphone_time_s][station_idx][0]
-        dt1 = self.data[self.dataset_labels.ambient_microphone_time_s][station_idx][-1] - t10
+        start_amb_ts = self.data[self.dataset_labels.ambient_microphone_time_s][station_idx][0]
+        end_amb_ts = self.data[self.dataset_labels.ambient_microphone_time_s][station_idx][-1] - start_amb_ts
         self.plot_sensor_data(station_idx, s_type="ambient")
-        self.touch_up_plot(0, dt1, "ambient")
+        self.touch_up_plot(0, end_amb_ts, "ambient")
 
 
 if __name__=="__main__":
