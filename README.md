@@ -15,4 +15,4 @@ References
 7.	Takazawa, S.K.; Popenhagen, S.K.; Ocampo Giraldo, L.A.; Hix, J.D.; Thompson, S.J.; Chichester, D.L.; Zeiler, C.P.; Garcés, M.A. Explosion Detection using Smartphones: Ensemble Learning with the Smartphone High-explosive Audio Recordings Dataset and the ESC-50 Dataset. Sensors, 2024, 24(20), 6688; https://doi.org/10.3390/s24206688.
 8.	Takazawa, S.K.; Popenhagen, S.K.; Ocampo Giraldo, L.A.; Cárdenas, E.S.; Hix, J.D.; Thompson, S.J.; Chichester, D.L.; Garcés, M.A. A comparison of smartphone and infrasound microphone data from a fuel air explosive and a high explosive. J. Acoust. Soc. Am. 2024, 156, 1509-1523; https://doi.org/10.1121/10.0028379.
 9.	KC, R. J; Wilson, T; Fox, D; Spillman K.; Garcés M.A.; Elbing B. R. Acoustic Observations of the OSIRIS-REx Sample Return Capsule Re-Entry from Wendover Airport. Seism. Res. Lett. 2025 XX, 1–14; https://doi.org/10.1785/0220250019.
-10.	UH_Soundscapes, GitHub Repository https://github.com/ISLA-UH/UH_Soundscapes (accessed on 21 August 2025).
+10.	UH_Soundscapes, this repository
