@@ -1,2 +1,18 @@
 # UH_Soundscapes
 audio event pipeline
+
+Open-access infrasonic-adjacent soundscapes
+
+Annotated openly-available low-frequency audio libraries of rocket [1], explosion [2], and hypersonic [3] signatures are provided. We use a decimated version of the Environmental Sound Classification dataset [4] to provide a validated noise vocabulary. Although the data sources vary, a majority are from smartphone and publicly available recordings. The event types are described in open-access published papers [4-9], and a Python open-source repository was developed for accessing, standardizing, and processing the curated data and metadata [10]. This work was funded by the Department of Energy National Nuclear Security Administration under Awards DE-NA0003920 (MTV) and DE-NA0003921 (ETI).
+
+References
+1.	Popenhagen, S.K. (2025).  Aggregated Smartphone Timeseries of Rocket-Generated Acoustics (ASTRA). https://doi.org/10.7910/DVN/ZKIS2K (accessed on 21 August 2025).
+2.	Takazawa, S.K. (2024) Smartphone High-Explosive Audio Recordings Dataset (SHAReD). Available online: https://doi.org/10.7910/DVN/ROWODP (accessed on 21 August 2025).
+3.	Silber, E.A.; Bowman, D.C.; Carr, C.G.; Eisenberg, D.P.; Elbing, B.R.; Fernando, B.; Garcés, M.A.; et al. Geophysical Observations of the 2023 September 24 OSIRIS-REx Sample Return Capsule Reentry. Planet. Sci. J. 2024, 5, 213; https://doi.org/10.3847/PSJ/ad5b5e.
+4.	K. J. Piczak. ESC: Dataset for Environmental Sound Classification. In Proceedings of the 23rd ACM international conference on multimedia, pp. 1015-1018, ACM, 2015. Paper available in GitHub Repository https://github.com/karolpiczak/ESC-50 (accessed on 21 August 2025).
+5.	Popenhagen, S.K.; Takazawa, S.K.; Garcés, M.A. Rocket Launch Detection with Smartphone Audio and Transfer Learning. Signals 2025, 6, 41; https://doi.org/10.3390/signals6030041.
+6.	Popenhagen, S.K.; Garcés, M.A. Acoustic Rocket Signatures Collected by Smartphones. Signals, 2025, 6, 5; https://doi.org/10.3390/signals6010005.
+7.	Takazawa, S.K.; Popenhagen, S.K.; Ocampo Giraldo, L.A.; Hix, J.D.; Thompson, S.J.; Chichester, D.L.; Zeiler, C.P.; Garcés, M.A. Explosion Detection using Smartphones: Ensemble Learning with the Smartphone High-explosive Audio Recordings Dataset and the ESC-50 Dataset. Sensors, 2024, 24(20), 6688; https://doi.org/10.3390/s24206688.
+8.	Takazawa, S.K.; Popenhagen, S.K.; Ocampo Giraldo, L.A.; Cárdenas, E.S.; Hix, J.D.; Thompson, S.J.; Chichester, D.L.; Garcés, M.A. A comparison of smartphone and infrasound microphone data from a fuel air explosive and a high explosive. J. Acoust. Soc. Am. 2024, 156, 1509-1523; https://doi.org/10.1121/10.0028379.
+9.	KC, R. J; Wilson, T; Fox, D; Spillman K.; Garcés M.A.; Elbing B. R. Acoustic Observations of the OSIRIS-REx Sample Return Capsule Re-Entry from Wendover Airport. Seism. Res. Lett. 2025 XX, 1–14; https://doi.org/10.1785/0220250019.
+10.	UH_Soundscapes, GitHub Repository https://github.com/ISLA-UH/UH_Soundscapes (accessed on 21 August 2025).
