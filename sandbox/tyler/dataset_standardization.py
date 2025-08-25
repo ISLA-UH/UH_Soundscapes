@@ -4,9 +4,11 @@ Aggregated Smartphone Timeseries of Rocket-generated Acoustics (ASTRA), Smartpho
 Dataset (SHAReD), OSIRIS-REx UH ISLA hypersonic signals (OREX), and the environmental sound classification dataset
 (ESC-50).
 """
-import pandas as pd
-import numpy as np
 import os
+from typing import List, Tuple
+
+import numpy as np
+import pandas as pd
 
 DIRECTORY_PATH: str = "/Users/tyler/IdeaProjects/UH_Soundscapes/notebooks"
 ASTRA_FILE_NAME: str = "ASTRA_tutorial.pkl"
@@ -25,25 +27,25 @@ class ASTRALabels:
     """
 
     def __init__(
-            self,
-            station_id: str = "station_id",
-            station_make: str = "station_make",
-            station_model: str = "station_model_number",
-            audio_data: str = "audio_wf_raw",
-            first_sample_epoch_s: str = "first_sample_epoch_s",
-            audio_fs: str = "audio_sample_rate_nominal_hz",
-            station_lat: str = "station_latitude",
-            station_lon: str = "station_longitude",
-            launch_id: str = "launch_id",
-            launch_pad_lat: str = "launch_pad_latitude",
-            launch_pad_lon: str = "launch_pad_longitude",
-            reported_launch_epoch_s: str = "reported_launch_epoch_s",
-            s_aligned_toa_est: str = "start_aligned_arrival_time_estimate_epoch_s",
-            p_aligned_toa_est: str = "peak_aligned_arrival_time_estimate_epoch_s",
-            est_prop_dist_km: str = "estimated_propagation_distance_km",
-            rocket_type: str = "rocket_type",
-            rocket_model_number: str = "rocket_model_number",
-            n_srbs: str = "n_solid_rocket_boosters",
+        self,
+        station_id: str = "station_id",
+        station_make: str = "station_make",
+        station_model: str = "station_model_number",
+        audio_data: str = "audio_wf_raw",
+        first_sample_epoch_s: str = "first_sample_epoch_s",
+        audio_fs: str = "audio_sample_rate_nominal_hz",
+        station_lat: str = "station_latitude",
+        station_lon: str = "station_longitude",
+        launch_id: str = "launch_id",
+        launch_pad_lat: str = "launch_pad_latitude",
+        launch_pad_lon: str = "launch_pad_longitude",
+        reported_launch_epoch_s: str = "reported_launch_epoch_s",
+        s_aligned_toa_est: str = "start_aligned_arrival_time_estimate_epoch_s",
+        p_aligned_toa_est: str = "peak_aligned_arrival_time_estimate_epoch_s",
+        est_prop_dist_km: str = "estimated_propagation_distance_km",
+        rocket_type: str = "rocket_type",
+        rocket_model_number: str = "rocket_model_number",
+        n_srbs: str = "n_solid_rocket_boosters",
     ):
         """
         Defaults should be left in place for most uses.
@@ -135,13 +137,13 @@ class ESC50Labels:
     """
 
     def __init__(
-            self,
-            clip_id: str = "clip_id",
-            audio_data: str = "waveform",
-            audio_fs: str = "fs",
-            esc50_target: str = "target",
-            esc50_true_class: str = "true_class",
-            yamnet_predicted_class: str = "inferred_class",
+        self,
+        clip_id: str = "clip_id",
+        audio_data: str = "waveform",
+        audio_fs: str = "fs",
+        esc50_target: str = "target",
+        esc50_true_class: str = "true_class",
+        yamnet_predicted_class: str = "inferred_class",
     ):
         """
         Defaults should be left in place for compatibility with the ESC-50 pickle files.
@@ -166,16 +168,16 @@ class OREXLabels:
     """
 
     def __init__(
-            self,
-            station_id: str = "station_ids",
-            station_label: str = "station_labels",
-            station_make: str = "station_make",
-            station_model: str = "station_model_number",
-            station_network: str = "deployment_network",
-            audio_data: str = "station_wf",
-            audio_epoch_s: str = "station_epoch_s",
-            audio_fs: str = "audio_sample_rate_nominal_hz",
-            event_id: str = "event_id",
+        self,
+        station_id: str = "station_ids",
+        station_label: str = "station_labels",
+        station_make: str = "station_make",
+        station_model: str = "station_model_number",
+        station_network: str = "deployment_network",
+        audio_data: str = "station_wf",
+        audio_epoch_s: str = "station_epoch_s",
+        audio_fs: str = "audio_sample_rate_nominal_hz",
+        event_id: str = "event_id",
     ):
         """
         Defaults should be left in place for most uses.
@@ -206,22 +208,22 @@ class StandardLabels:
     """
 
     def __init__(
-            self,
-            station_id: str = "station_id",
-            station_network: str = "deployment_network",
-            station_latitude: str = "station_latitude",
-            station_longitude: str = "station_longitude",
-            station_altitude: str = "station_altitude_m",
-            audio_waveform: str = "audio_waveform",
-            t0_epoch_s: str = "first_audio_sample_epoch_s",
-            audio_fs: str = "audio_sample_rate_nominal_hz",
-            event_id: str = "event_id",
-            data_source: str = "data_source",
-            ml_label: str = "machine_learning_label",
-            source_latitude: str = "source_latitude",
-            source_longitude: str = "source_longitude",
-            source_altitude: str = "source_altitude_m",
-            source_epoch_s: str = "source_epoch_s",
+        self,
+        station_id: str = "station_id",
+        station_network: str = "deployment_network",
+        station_latitude: str = "station_latitude",
+        station_longitude: str = "station_longitude",
+        station_altitude: str = "station_altitude_m",
+        audio_waveform: str = "audio_waveform",
+        t0_epoch_s: str = "first_audio_sample_epoch_s",
+        audio_fs: str = "audio_sample_rate_nominal_hz",
+        event_id: str = "event_id",
+        data_source: str = "data_source",
+        ml_label: str = "machine_learning_label",
+        source_latitude: str = "source_latitude",
+        source_longitude: str = "source_longitude",
+        source_altitude: str = "source_altitude_m",
+        source_epoch_s: str = "source_epoch_s",
     ):
         """
         Defaults should be left in place for most uses.
@@ -258,7 +260,13 @@ class StandardLabels:
         self.source_epoch_s = source_epoch_s
 
 
-def select_astra_rocket_samples(astra_df: pandas.DataFrame):
+def select_astra_rocket_samples(astra_df: pd.DataFrame):
+    """
+    selects rocket samples from the ASTRA dataframe
+
+    :param astra_df: The ASTRA dataframe containing audio data and metadata
+    :return: A dataframe containing only the rocket samples
+    """
     al = ASTRALabels()
     rocket_samples, t0s = [], []
     sample_dur = 5.
@@ -280,6 +288,9 @@ def select_astra_rocket_samples(astra_df: pandas.DataFrame):
 
 
 def select_astra_noise_samples(astra_df, al=ASTRALabels()):
+    """
+    todo: finish comment
+    """
     noise_samples, t0s = [], []
     min_sample_dur = 0.96
     max_sample_dur = 5. * 10
@@ -309,6 +320,9 @@ def select_astra_noise_samples(astra_df, al=ASTRALabels()):
 
 
 def get_astra_samples(raw_astra_df):
+    """
+    todo: finish comment
+    """
     stl = StandardLabels()
     noise_astra_df = raw_astra_df.copy()
     noise_astra_df = select_astra_noise_samples(noise_astra_df)
@@ -342,9 +356,10 @@ def get_astra_samples(raw_astra_df):
     return rocket_astra_df, noise_astra_df
 
 
-def gen_metadata_df(df, event_column, metadata_columns):
+def gen_metadata_df(df: pd.DataFrame, event_column: str, metadata_columns: List[str]) -> pd.DataFrame:
     """
     Generate event metadata for a dataset.
+
     :param df: DataFrame containing the dataset.
     :param event_column: Column name containing event IDs.
     :param metadata_columns: List of column names to include in the metadata.
@@ -356,15 +371,14 @@ def gen_metadata_df(df, event_column, metadata_columns):
     for event in metadata_df.index:
         event_df = df[df[event_column] == event]
         for col in metadata_columns:
-            if col in event_df.columns:
-                metadata_df.at[event, col] = event_df[col].iloc[0]
-            else:
-                metadata_df.at[event, col] = np.nan
+            metadata_df.at[event, col] = event_df[col].iloc[0] if col in event_df.columns else np.nan
     return metadata_df
 
 
-def standardize_astra():
-    raw_astra_df = pd.read_pickle(os.path.join(DIRECTORY_PATH, ASTRA_FILE_NAME))
+def standardize_astra(raw_astra_df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    todo: finish
+    """
     astra_dsl = ASTRALabels()
     astra_event_metadata = gen_metadata_df(
         raw_astra_df,
@@ -386,6 +400,9 @@ def standardize_astra():
 
 
 def standardize_shared():
+    """
+    todo: finish comment
+    """
     raw_shared_df = pd.read_pickle(os.path.join(DIRECTORY_PATH, SHARED_FILE_NAME))
     shared_dsl = SHAReDLabels()
     standard_dsl = StandardLabels()
@@ -407,9 +424,9 @@ def standardize_shared():
     explosion_df = raw_shared_df[explosion_columns_to_keep]
     ambient_df = raw_shared_df[ambient_columns_to_keep]
     explosion_df[shared_dsl.microphone_time_s] = [t[0] for t in explosion_df[shared_dsl.microphone_time_s]]
-    ambient_df[shared_dsl.ambient_microphone_time_s] = [np.nan] * len(ambient_df)
-    ambient_df[shared_dsl.source_latitude] = [np.nan] * len(ambient_df)
-    ambient_df[shared_dsl.source_longitude] = [np.nan] * len(ambient_df)
+    ambient_df.loc[:, shared_dsl.ambient_microphone_time_s] = [np.nan] * len(ambient_df)
+    ambient_df.loc[shared_dsl.source_latitude] = [np.nan] * len(ambient_df)
+    ambient_df.loc[shared_dsl.source_longitude] = [np.nan] * len(ambient_df)
     shared_to_standard_cols = {
         shared_dsl.smartphone_id: standard_dsl.station_id,
         shared_dsl.event_name: standard_dsl.event_id,
@@ -443,7 +460,11 @@ def standardize_shared():
 
 
 def main():
-    astra_standard_df, astra_metadata_df = standardize_astra()
+    """
+    todo: finish comment
+    """
+    raw_astra_df = pd.read_pickle(os.path.join(DIRECTORY_PATH, ASTRA_FILE_NAME))
+    astra_standard_df, astra_metadata_df = standardize_astra(raw_astra_df)
     shared_standard_df, shared_metadata_df = standardize_shared()
     astra_standard_df.to_pickle(os.path.join(DIRECTORY_PATH, ASTRA_STANDARDIZED_FILE_NAME))
     shared_standard_df.to_pickle(os.path.join(DIRECTORY_PATH, SHARED_STANDARDIZED_FILE_NAME))
