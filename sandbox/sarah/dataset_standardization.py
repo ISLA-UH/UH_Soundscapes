@@ -8,257 +8,40 @@ import pandas as pd
 import numpy as np
 import os
 
+import sandbox.sarah.standard_labels as stl
+
+STL = stl.StandardLabels()
+SL = stl.SHAReDLabels()
+AL = stl.ASTRALabels()
+EL = stl.ESC50Labels()
+OL = stl.OREXLabels()
+
 DIRECTORY_PATH: str = "/Users/spopen/redvox/data/rockets_data/datasets_pkl"
-ASTRA_FILE_NAME: str = "ASTRA.pkl"
-SHARED_FILE_NAME: str = "SHAReD.pkl"
-ESC50_FILE_NAME: str = "esc50_df_800Hz.pkl"
-OREX_FILE_NAME: str = "orex_best_mics_800hz_1024pt.npz"
-ASTRA_STANDARDIZED_FILE_NAME: str = "ASTRA_standardized.pkl"
-SHARED_STANDARDIZED_FILE_NAME: str = "SHAReD_standardized.pkl"
-ASTRA_MD_FILE_NAME: str = "ASTRA_event_metadata.csv"
-SHARED_MD_FILE_NAME: str = "SHAReD_event_metadata.csv"
+
+ASTRA_FILENAME: str = "ASTRA.pkl"
+ASTRA_STANDARDIZED_FILENAME: str = "ASTRA_standardized.pkl"
+ASTRA_EVENT_MD_FILENAME: str = "ASTRA_event_metadata.csv"
+ASTRA_STATION_MD_FILENAME: str = "ASTRA_station_metadata.csv"
+
+SHARED_FILENAME: str = "SHAReD.pkl"
+SHARED_STANDARDIZED_FILENAME: str = "SHAReD_standardized.pkl"
+SHARED_EVENT_MD_FILENAME: str = "SHAReD_event_metadata.csv"
+SHARED_STATION_MD_FILENAME: str = "SHAReD_station_metadata.csv"
+
+ESC50_FILENAME: str = "esc50_df_800Hz.pkl"
+ESC50_STANDARDIZED_FILENAME: str = "ESC50_800Hz_standardized.pkl"
+ESC50_EVENT_MD_FILENAME: str = "ESC50_event_metadata.csv"
+
+OREX_FILENAME: str = "orex_best_mics_800hz_1024pt.npz"
+OREX_STANDARDIZED_FILENAME: str = "OREX_standardized.pkl"
+OREX_EVENT_MD_FILENAME: str = "OREX_event_metadata.csv"
+OREX_STATION_MD_FILENAME: str = "OREX_station_metadata.csv"
+OREX_FULL_FILENAME: str = "all_stations_3min_dataframe.pkl"
+
+MERGED_DS_FILENAME: str = "merged_standardized_dataset.pkl"
 
 
-class ASTRALabels:
-    """
-    A class containing the column names used in ASTRA.
-    """
-
-    def __init__(
-            self,
-            station_id: str = "station_id",
-            station_make: str = "station_make",
-            station_model: str = "station_model_number",
-            audio_data: str = "audio_wf_raw",
-            first_sample_epoch_s: str = "first_sample_epoch_s",
-            audio_fs: str = "audio_sample_rate_nominal_hz",
-            station_lat: str = "station_latitude",
-            station_lon: str = "station_longitude",
-            launch_id: str = "launch_id",
-            launch_pad_lat: str = "launch_pad_latitude",
-            launch_pad_lon: str = "launch_pad_longitude",
-            reported_launch_epoch_s: str = "reported_launch_epoch_s",
-            s_aligned_toa_est: str = "start_aligned_arrival_time_estimate_epoch_s",
-            p_aligned_toa_est: str = "peak_aligned_arrival_time_estimate_epoch_s",
-            est_prop_dist_km: str = "estimated_propagation_distance_km",
-            rocket_type: str = "rocket_type",
-            rocket_model_number: str = "rocket_model_number",
-            n_srbs: str = "n_solid_rocket_boosters",
-    ):
-        """
-        Defaults should be left in place for most uses.
-        :param station_id: column containing the recording smartphones' unique station ID numbers
-        :param station_make: column containing the recording smartphones' makes
-        :param station_model: column containing the recording smartphones' models
-        :param audio_data: column containing the raw, uncalibrated audio data
-        :param first_sample_epoch_s: column containing the epoch second of the first sample
-        :param audio_fs: column containing the sample rate of the audio data in Hertz
-        :param station_lat: column containing the recording smartphones' latitude in degrees
-        :param station_lon: column containing the recording smartphones' longitude in degrees
-        :param launch_id: column containing the launches' unique ID strings
-        :param launch_pad_lat: column containing the launch pad latitudes in degrees
-        :param launch_pad_lon: column containing the launch pad longitudes in degrees
-        :param reported_launch_epoch_s: column containing the reported launch times in epoch seconds
-        :param s_aligned_toa_est: column containing the start-aligned arrival time estimates in epoch seconds
-        :param p_aligned_toa_est: column containing the peak-aligned arrival time estimates in epoch seconds
-        :param est_prop_dist_km: column containing the estimated propagation distances in kilometers
-        :param rocket_type: column containing the type of rockets launched (ex: "SpaceX Falcon 9")
-        :param rocket_model_number: column containing the model number of the rockets launched (ex: "F9-B5")
-        :param n_srbs: column containing the number of solid rocket boosters used
-        """
-        self.station_id = station_id
-        self.station_make = station_make
-        self.station_model = station_model
-        self.audio_data = audio_data
-        self.audio_fs = audio_fs
-        self.station_lat = station_lat
-        self.station_lon = station_lon
-        self.launch_id = launch_id
-        self.launch_pad_lat = launch_pad_lat
-        self.launch_pad_lon = launch_pad_lon
-        self.reported_launch_epoch_s = reported_launch_epoch_s
-        self.first_sample_epoch_s = first_sample_epoch_s
-        self.s_aligned_toa_est = s_aligned_toa_est
-        self.p_aligned_toa_est = p_aligned_toa_est
-        self.est_prop_dist_km = est_prop_dist_km
-        self.rocket_type = rocket_type
-        self.rocket_model_number = rocket_model_number
-        self.n_srbs = n_srbs
-
-
-class SHAReDLabels:
-    """
-    A class containing the column names used in the SHAReD dataset.
-    """
-
-    def __init__(self):
-        self.event_name: str = "event_name"
-        self.source_yield_kg: str = "source_yield_kg"
-        self.smartphone_id: str = "smartphone_id"
-        self.microphone_time_s: str = "microphone_time_s"
-        self.microphone_data: str = "microphone_data"
-        self.microphone_sample_rate_hz: str = "microphone_sample_rate_hz"
-        self.barometer_time_s: str = "barometer_time_s"
-        self.barometer_data: str = "barometer_data"
-        self.barometer_sample_rate_hz: str = "barometer_sample_rate_hz"
-        self.accelerometer_time_s: str = "accelerometer_time_s"
-        self.accelerometer_data_x: str = "accelerometer_data_x"
-        self.accelerometer_data_y: str = "accelerometer_data_y"
-        self.accelerometer_data_z: str = "accelerometer_data_z"
-        self.accelerometer_sample_rate_hz: str = "accelerometer_sample_rate_hz"
-        self.ambient_microphone_time_s: str = "ambient_microphone_time_s"
-        self.ambient_microphone_data: str = "ambient_microphone_data"
-        self.ambient_barometer_time_s: str = "ambient_barometer_time_s"
-        self.ambient_barometer_data: str = "ambient_barometer_data"
-        self.ambient_accelerometer_time_s: str = "ambient_accelerometer_time_s"
-        self.ambient_accelerometer_data_x: str = "ambient_accelerometer_data_x"
-        self.ambient_accelerometer_data_y: str = "ambient_accelerometer_data_y"
-        self.ambient_accelerometer_data_z: str = "ambient_accelerometer_data_z"
-        self.internal_location_latitude: str = "internal_location_latitude"
-        self.internal_location_longitude: str = "internal_location_longitude"
-        self.external_location_latitude: str = "external_location_latitude"
-        self.external_location_longitude: str = "external_location_longitude"
-        self.source_latitude: str = "source_latitude"
-        self.source_longitude: str = "source_longitude"
-        self.distance_from_explosion_m: str = "distance_from_explosion_m"
-        self.scaled_distance: str = "scaled_distance"
-        self.explosion_detonation_time: str = "explosion_detonation_time"
-        self.internal_clock_offset_s: str = "internal_clock_offset_s"
-        self.smartphone_model: str = "smartphone_model"
-        self.effective_yield_category: str = "effective_yield_category"
-        self.event_id_number: str = "training_validation_test"
-
-
-class ESC50Labels:
-    """
-    A class containing the column names used in the ESC-50 pickle files.
-    """
-
-    def __init__(
-            self,
-            clip_id: str = "clip_id",
-            audio_data: str = "waveform",
-            audio_fs: str = "fs",
-            esc50_target: str = "target",
-            esc50_true_class: str = "true_class",
-            yamnet_predicted_class: str = "inferred_class",
-    ):
-        """
-        Defaults should be left in place for compatibility with the ESC-50 pickle files.
-        :param clip_id: the ID string of the Freesound clip the audio was taken from, e.g. "freesound123456"
-        :param audio_data: a numpy array containing the raw audio waveform amplitudes
-        :param audio_fs: the sampling frequency of the audio waveform in Hz, e.g. 800 or 16000
-        :param esc50_target: the target class number of the ESC-50 class, e.g. 37 for "clock_alarm"
-        :param esc50_true_class: the name of the true ESC-50 class, e.g. "clock_alarm"
-        :param yamnet_predicted_class: the name of the top class predicted by YAMNet, e.g. "Tools"
-        """
-        self.clip_id = clip_id
-        self.audio_data = audio_data
-        self.audio_fs = audio_fs
-        self.esc50_target = esc50_target
-        self.esc50_true_class = esc50_true_class
-        self.yamnet_predicted_class = yamnet_predicted_class
-
-
-class OREXLabels:
-    """
-    A class containing the keys used in the OSIRIS-REx NPZ file.
-    """
-
-    def __init__(
-            self,
-            station_id: str = "station_ids",
-            station_label: str = "station_labels",
-            station_make: str = "station_make",
-            station_model: str = "station_model_number",
-            station_network: str = "deployment_network",
-            audio_data: str = "station_wf",
-            audio_epoch_s: str = "station_epoch_s",
-            audio_fs: str = "audio_sample_rate_nominal_hz",
-            event_id: str = "event_id",
-    ):
-        """
-        Defaults should be left in place for most uses.
-        :param station_id: key associated with the unique ID string of the station used to record the signal
-        :param station_label: key associated with the descriptive label string of the station
-        :param station_make: key associated with the recording smartphone's make
-        :param station_model: key associated with the recording smartphone's model
-        :param station_network: key associated with the network on which the smartphone was deployed
-        :param audio_data: key associated with the audio waveform of the signal
-        :param audio_epoch_s: key associated with the time array of the audio waveform in epoch seconds
-        :param audio_fs: key associated with the sample rate of the audio data in Hertz
-        :param event_id: key associated with the unique ID string of the event associated with the signal
-        """
-        self.station_id = station_id
-        self.station_label = station_label
-        self.station_make = station_make
-        self.station_model = station_model
-        self.station_network = station_network
-        self.audio_data = audio_data
-        self.audio_epoch_s = audio_epoch_s
-        self.audio_fs = audio_fs
-        self.event_id = event_id
-
-
-class StandardLabels:
-    """
-    A class containing the column names used in standardized datasets for machine learning applications.
-    """
-
-    def __init__(
-            self,
-            station_id: str = "station_id",
-            station_network: str = "deployment_network",
-            station_latitude: str = "station_latitude",
-            station_longitude: str = "station_longitude",
-            station_altitude: str = "station_altitude_m",
-            audio_waveform: str = "audio_waveform",
-            t0_epoch_s: str = "first_audio_sample_epoch_s",
-            audio_fs: str = "audio_sample_rate_nominal_hz",
-            event_id: str = "event_id",
-            data_source: str = "data_source",
-            ml_label: str = "machine_learning_label",
-            source_latitude: str = "source_latitude",
-            source_longitude: str = "source_longitude",
-            source_altitude: str = "source_altitude_m",
-            source_epoch_s: str = "source_epoch_s",
-    ):
-        """
-        Defaults should be left in place for most uses.
-        :param station_id: unique identifying string of the recording station, when applicable
-        :param station_network: network smartphone was deployed on, when applicable
-        :param station_latitude: latitude of the recording station in degrees, when applicable
-        :param station_longitude: longitude of the recording station in degrees, when applicable
-        :param station_altitude: altitude of the recording station in meters, when applicable
-        :param audio_waveform: audio waveform data, typically a numpy array of raw audio samples
-        :param t0_epoch_s: epoch second of the first audio sample, when applicable
-        :param audio_fs: sample rate of the audio data in Hertz
-        :param event_id: unique identifying string of the event associated with the audio data
-        :param data_source: source of the data, e.g., "ASTRA", "SHAReD", "OREX", etc.
-        :param ml_label: suggested label for machine learning applications, e.g., "explosion", "rocket", etc.
-        :param source_latitude: latitude of the signal source in degrees, when applicable
-        :param source_longitude: longitude of the signal source in degrees, when applicable
-        :param source_altitude: altitude of the signal source in meters, when applicable
-        :param source_epoch_s: epoch seconds of the source event, when applicable
-        """
-        self.station_id = station_id
-        self.station_network = station_network
-        self.station_lat = station_latitude
-        self.station_lon = station_longitude
-        self.station_alt = station_altitude
-        self.audio_wf = audio_waveform
-        self.t0_epoch_s = t0_epoch_s
-        self.audio_fs = audio_fs
-        self.event_id = event_id
-        self.data_source = data_source
-        self.ml_label = ml_label
-        self.source_lat = source_latitude
-        self.source_lon = source_longitude
-        self.source_alt = source_altitude
-        self.source_epoch_s = source_epoch_s
-
-
-def select_astra_rocket_samples(astra_df, al=ASTRALabels()):
+def select_astra_rocket_samples(astra_df, al=AL):
     rocket_samples, t0s = [], []
     sample_dur = 5.
     for station in astra_df.index:
@@ -278,7 +61,7 @@ def select_astra_rocket_samples(astra_df, al=ASTRALabels()):
     return astra_df
 
 
-def select_astra_noise_samples(astra_df, al=ASTRALabels()):
+def select_astra_noise_samples(astra_df, al=AL):
     noise_samples, t0s = [], []
     min_sample_dur = 0.96
     max_sample_dur = 5. * 10
@@ -308,42 +91,47 @@ def select_astra_noise_samples(astra_df, al=ASTRALabels()):
 
 
 def get_astra_samples(raw_astra_df):
-    stl = StandardLabels()
-    noise_astra_df = raw_astra_df.copy()
-    noise_astra_df = select_astra_noise_samples(noise_astra_df)
+    # add and fill station altitude, data source, and station network columns
+    raw_astra_df[STL.station_alt] = [0.0] * len(raw_astra_df)  # ASTRA stations are all surface stations
+    raw_astra_df[STL.data_source] = ["ASTRA"] * len(raw_astra_df)  # all data is from the ASTRA dataset
+    raw_astra_df[STL.station_network] = ["FLORIDA"] * len(raw_astra_df)  # all data was recorded on the Florida network
+    # make a copy of the raw dataframe to select rocket samples from
     rocket_astra_df = raw_astra_df.copy()
+    # select 5 second rocket samples centered on the peak aligned time of arrival
     rocket_astra_df = select_astra_rocket_samples(rocket_astra_df)
-    al = ASTRALabels()
-    rocket_astra_df = rocket_astra_df.rename(columns={
-        al.audio_data: stl.audio_wf, al.first_sample_epoch_s: stl.t0_epoch_s, al.audio_fs: stl.audio_fs,
-        al.station_id: stl.station_id, al.station_lat: stl.station_lat, al.station_lon: stl.station_lon,
-        al.launch_id: stl.event_id, al.launch_pad_lat: stl.source_lat, al.launch_pad_lon: stl.source_lon,
-        al.reported_launch_epoch_s: stl.source_epoch_s})
-    rocket_astra_df[stl.station_network] = "FLORIDA"
-    rocket_astra_df[stl.station_alt] = 0.0  # ASTRA stations are all surface stations
-    rocket_astra_df[stl.data_source] = "ASTRA"
-    rocket_astra_df[stl.source_alt] = 0.0  # ASTRA sources are all on the surface
-    rocket_astra_df[stl.ml_label] = ["rocket"] * len(
-        rocket_astra_df)  # suggested label for machine learning applications
-    noise_astra_df = noise_astra_df.rename(columns={
-        al.audio_data: stl.audio_wf, al.first_sample_epoch_s: stl.t0_epoch_s, al.audio_fs: stl.audio_fs,
-        al.station_id: stl.station_id, al.station_lat: stl.station_lat, al.station_lon: stl.station_lon,
-        al.launch_id: stl.event_id, al.launch_pad_lat: stl.source_lat, al.launch_pad_lon: stl.source_lon,
-        al.reported_launch_epoch_s: stl.source_epoch_s})
-    noise_astra_df[stl.ml_label] = ["noise"] * len(noise_astra_df)  # suggested label for machine learning applications
-    noise_astra_df[stl.source_lat] = [np.nan] * len(noise_astra_df)
-    noise_astra_df[stl.source_lon] = [np.nan] * len(noise_astra_df)
-    noise_astra_df[stl.source_alt] = [np.nan] * len(noise_astra_df)
-    noise_astra_df[stl.source_epoch_s] = [np.nan] * len(noise_astra_df)
-    noise_astra_df[stl.station_network] = "FLORIDA"
-    noise_astra_df[stl.station_alt] = 0.0  # ASTRA stations are all surface stations
-    noise_astra_df[stl.data_source] = "ASTRA"
+    # add source altitude and ML label columns
+    rocket_astra_df[STL.source_alt] = 0.0  # ASTRA sources are all on the surface
+    rocket_astra_df[STL.ml_label] = ["rocket"] * len(rocket_astra_df)  # suggested label for ML applications
+    # rename columns to standard labels
+    rocket_astra_df = stl.standardize_df_columns(dataset=rocket_astra_df, label_map=AL.standardize_dict)
+    # fill in any missing standard columns with NaNs
+    for col in STL.standard_labels:
+        if col not in rocket_astra_df.columns:
+            rocket_astra_df[col] = [np.nan] * len(rocket_astra_df)
+
+    # make a copy of the raw dataframe to select noise samples from
+    noise_astra_df = raw_astra_df.copy()
+    # select < 50 second noise samples ending at least 60 seconds before the start-aligned time of arrival
+    noise_astra_df = select_astra_noise_samples(noise_astra_df)
+    # add and fill ML label column
+    noise_astra_df[STL.ml_label] = ["noise"] * len(noise_astra_df)  # suggested label for ML applications
+    # rename columns to standard labels
+    noise_astra_df = stl.standardize_df_columns(dataset=noise_astra_df, label_map=AL.standardize_dict)
+    # reset source location and time columns to NaN
+    noise_astra_df[STL.source_lat] = [np.nan] * len(noise_astra_df)
+    noise_astra_df[STL.source_lon] = [np.nan] * len(noise_astra_df)
+    noise_astra_df[STL.source_alt] = [np.nan] * len(noise_astra_df)
+    noise_astra_df[STL.source_epoch_s] = [np.nan] * len(noise_astra_df)
+    # fill in any other missing standard columns with NaNs
+    for col in STL.standard_labels:
+        if col not in noise_astra_df.columns:
+            noise_astra_df[col] = [np.nan] * len(noise_astra_df)
     return rocket_astra_df, noise_astra_df
 
 
-def gen_metadata_df(df, event_column, metadata_columns):
+def compile_event_metadata(df, event_column, metadata_columns):
     """
-    Generate event metadata for a dataset.
+    Compile event metadata for a dataset.
     :param df: DataFrame containing the dataset.
     :param event_column: Column name containing event IDs.
     :param metadata_columns: List of column names to include in the metadata.
@@ -362,93 +150,225 @@ def gen_metadata_df(df, event_column, metadata_columns):
     return metadata_df
 
 
+def compile_station_metadata(df, station_column, metadata_columns):
+    """
+    Compile station metadata for a dataset.
+    :param df: DataFrame containing the dataset.
+    :param station_column: Column name containing station IDs.
+    :param metadata_columns: List of column names to include in the metadata.
+    :return: DataFrame with station metadata.
+    """
+    station_ids = df[station_column].unique()
+    metadata_df = pd.DataFrame(index=station_ids, columns=metadata_columns)
+    metadata_df[station_column] = station_ids
+    for event in metadata_df.index:
+        event_df = df[df[station_column] == event]
+        for col in metadata_columns:
+            if col in event_df.columns:
+                metadata_df.at[event, col] = event_df[col].iloc[0]
+            else:
+                metadata_df.at[event, col] = np.nan
+    return metadata_df
+
+
 def standardize_astra():
-    raw_astra_df = pd.read_pickle(os.path.join(DIRECTORY_PATH, ASTRA_FILE_NAME))
-    astra_dsl = ASTRALabels()
-    astra_event_metadata = gen_metadata_df(
+    # load ASTRA dataset
+    raw_astra_df = pd.read_pickle(os.path.join(DIRECTORY_PATH, ASTRA_FILENAME))
+    # compile ASTRA event metadata
+    astra_event_metadata = compile_event_metadata(
         raw_astra_df,
-        astra_dsl.launch_id,
-        [astra_dsl.rocket_type, astra_dsl.rocket_model_number, astra_dsl.n_srbs, astra_dsl.reported_launch_epoch_s])
+        AL.launch_id,
+        AL.event_metadata)
+    # compile ASTRA station metadata
+    astra_station_metadata = compile_station_metadata(
+        raw_astra_df,
+        AL.station_id,
+        AL.station_metadata)
+    # get ASTRA rocket and noise samples
     rocket_astra_df, noise_astra_df = get_astra_samples(raw_astra_df)
-    columns_to_keep = ['audio_waveform', 'first_audio_sample_epoch_s',
-                       'audio_sample_rate_nominal_hz', 'station_id',
-                       'station_latitude', 'station_longitude',
-                       'event_id', 'source_latitude', 'source_longitude',
-                       'source_epoch_s',
-                       'machine_learning_label',
-                       'deployment_network', 'station_altitude_m', 'data_source',
-                       'source_altitude_m']
-    rocket_astra_df = rocket_astra_df[columns_to_keep]
-    noise_astra_df = noise_astra_df[columns_to_keep]
+    # keep only standard columns
+    rocket_astra_df = rocket_astra_df[STL.standard_labels]
+    noise_astra_df = noise_astra_df[STL.standard_labels]
+    # concatenate rocket and noise dataframes
     astra_standardized_df = pd.concat([rocket_astra_df, noise_astra_df], ignore_index=True)
-    return astra_standardized_df, astra_event_metadata
+    return astra_standardized_df, astra_event_metadata, astra_station_metadata
 
 
 def standardize_shared():
-    raw_shared_df = pd.read_pickle(os.path.join(DIRECTORY_PATH, SHARED_FILE_NAME))
-    shared_dsl = SHAReDLabels()
-    standard_dsl = StandardLabels()
+    # load SHAReD dataset
+    raw_shared_df = pd.read_pickle(os.path.join(DIRECTORY_PATH, SHARED_FILENAME))
+    # change NNSS event names from "NNSS" to "NNSS_<event_id_number>" to make them unique
     for idx in raw_shared_df.index:
-        if raw_shared_df[shared_dsl.event_name][idx] == "NNSS":
-            raw_shared_df.at[idx, shared_dsl.event_name] = f"NNSS_{raw_shared_df[shared_dsl.event_id_number][idx]}"
-    shared_event_metadata = gen_metadata_df(
+        if raw_shared_df[SL.event_name][idx] == "NNSS":
+            raw_shared_df.at[idx, SL.event_name] = f"NNSS_{raw_shared_df[SL.event_id_number][idx]}"
+    shared_event_metadata = compile_event_metadata(
         raw_shared_df,
-        shared_dsl.event_name,
-        [shared_dsl.explosion_detonation_time, shared_dsl.source_yield_kg, shared_dsl.effective_yield_category])
-    explosion_columns_to_keep = [shared_dsl.event_name, shared_dsl.smartphone_id, shared_dsl.microphone_data,
-                                 shared_dsl.microphone_time_s, shared_dsl.microphone_sample_rate_hz,
-                                 shared_dsl.internal_location_latitude, shared_dsl.internal_location_longitude,
-                                 shared_dsl.source_latitude, shared_dsl.source_longitude]
-    ambient_columns_to_keep = [shared_dsl.event_name, shared_dsl.smartphone_id, shared_dsl.ambient_microphone_time_s,
-                               shared_dsl.ambient_microphone_data, shared_dsl.microphone_sample_rate_hz,
-                               shared_dsl.internal_location_latitude, shared_dsl.internal_location_longitude,
-                               shared_dsl.source_latitude, shared_dsl.source_longitude]
-    explosion_df = raw_shared_df[explosion_columns_to_keep]
-    ambient_df = raw_shared_df[ambient_columns_to_keep]
-    explosion_df[shared_dsl.microphone_time_s] = [t[0] for t in explosion_df[shared_dsl.microphone_time_s]]
-    ambient_df[shared_dsl.ambient_microphone_time_s] = [np.nan] * len(ambient_df)
-    ambient_df[shared_dsl.source_latitude] = [np.nan] * len(ambient_df)
-    ambient_df[shared_dsl.source_longitude] = [np.nan] * len(ambient_df)
-    shared_to_standard_cols = {
-        shared_dsl.smartphone_id: standard_dsl.station_id,
-        shared_dsl.event_name: standard_dsl.event_id,
-        shared_dsl.microphone_data: standard_dsl.audio_wf,
-        shared_dsl.microphone_time_s: standard_dsl.t0_epoch_s,
-        shared_dsl.microphone_sample_rate_hz: standard_dsl.audio_fs,
-        shared_dsl.internal_location_latitude: standard_dsl.station_lat,
-        shared_dsl.internal_location_longitude: standard_dsl.station_lon,
-        shared_dsl.source_latitude: standard_dsl.source_lat,
-        shared_dsl.source_longitude: standard_dsl.source_lon,
-        shared_dsl.ambient_microphone_data: standard_dsl.audio_wf,
-        shared_dsl.ambient_microphone_time_s: standard_dsl.t0_epoch_s}
-    for col in explosion_df.columns:
-        if col in shared_to_standard_cols.keys():
-            explosion_df = explosion_df.rename(columns={col: shared_to_standard_cols[col]})
-    for col in ambient_df.columns:
-        if col in shared_to_standard_cols.keys():
-            ambient_df = ambient_df.rename(columns={col: shared_to_standard_cols[col]})
-    ambient_df[standard_dsl.ml_label] = ["silence"] * len(ambient_df)
-    explosion_df[standard_dsl.ml_label] = ["explosion"] * len(explosion_df)
-    ambient_df[standard_dsl.data_source] = ["SHAReD"] * len(ambient_df)
-    explosion_df[standard_dsl.data_source] = ["SHAReD"] * len(explosion_df)
-    ambient_df[standard_dsl.station_alt] = [0.0] * len(ambient_df)  # SHAReD stations are all surface stations
-    explosion_df[standard_dsl.station_alt] = [0.0] * len(explosion_df)  # SHAReD stations are all surface stations
-    ambient_df[standard_dsl.source_alt] = [np.nan] * len(ambient_df)
-    explosion_df[standard_dsl.source_alt] = [0.0] * len(explosion_df)  # SHAReD sources are all on the surface
-    explosion_df[standard_dsl.station_network] = [x.split("_")[0] for x in explosion_df[standard_dsl.event_id]]
-    ambient_df[standard_dsl.station_network] = [x.split("_")[0] for x in ambient_df[standard_dsl.event_id]]
+        SL.event_name,
+        SL.event_metadata)
+    shared_station_metadata = compile_station_metadata(
+        raw_shared_df,
+        SL.smartphone_id,
+        SL.station_metadata)
+    explosion_columns = [SL.event_name, SL.smartphone_id, SL.microphone_data,
+                         SL.microphone_time_s, SL.microphone_sample_rate_hz,
+                         SL.internal_location_latitude, SL.internal_location_longitude,
+                         SL.source_latitude, SL.source_longitude]
+    ambient_columns = [SL.event_name, SL.smartphone_id, SL.ambient_microphone_time_s,
+                       SL.ambient_microphone_data, SL.microphone_sample_rate_hz,
+                       SL.internal_location_latitude, SL.internal_location_longitude,
+                       SL.source_latitude, SL.source_longitude]
+    explosion_df = raw_shared_df[explosion_columns]
+    ambient_df = raw_shared_df[ambient_columns]
+    # add and fill first sample epoch second columns
+    explosion_df[STL.t0_epoch_s] = [t[0] for t in explosion_df[SL.microphone_time_s]]
+    ambient_df[STL.t0_epoch_s] = [t[0] for t in ambient_df[SL.ambient_microphone_time_s]]
+    # add and fill data set source columns
+    explosion_df[STL.data_source] = ["SHAReD"] * len(explosion_df)
+    ambient_df[STL.data_source] = ["SHAReD"] * len(ambient_df)
+    # add and fill station altitude columns
+    explosion_df[STL.station_alt] = [0.0] * len(explosion_df)  # SHAReD stations are all surface stations
+    ambient_df[STL.station_alt] = [0.0] * len(ambient_df)  # SHAReD stations are all surface stations
+    # add and fill source altitude columns
+    explosion_df[STL.source_alt] = [0.0] * len(explosion_df)  # SHAReD sources are all on the surface
+    ambient_df[STL.source_alt] = [np.nan] * len(ambient_df)  # SHAReD ambient data has no identified source
+    # add and fill station network columns
+    explosion_df[STL.station_network] = [x.split("_")[0] for x in explosion_df[SL.event_name]]
+    ambient_df[STL.station_network] = [x.split("_")[0] for x in ambient_df[SL.event_name]]
+    # add and fill ML label columns with recommended class labels
+    explosion_df[STL.ml_label] = ["explosion"] * len(explosion_df)
+    ambient_df[STL.ml_label] = ["silence"] * len(ambient_df)
+    # rename columns to standard labels and fill in any missing standard columns with NaNs
+    explosion_df = stl.standardize_df_columns(dataset=explosion_df, label_map=SL.standardize_dict)
+    for col in STL.standard_labels:
+        if col not in explosion_df.columns:
+            explosion_df[col] = [np.nan] * len(explosion_df)
+    ambient_df = stl.standardize_df_columns(dataset=ambient_df, label_map=SL.standardize_dict)
+    for col in STL.standard_labels:
+        if col not in ambient_df.columns:
+            ambient_df[col] = [np.nan] * len(ambient_df)
+    # reset source location columns to NaN for ambient data
+    ambient_df[SL.source_latitude] = [np.nan] * len(ambient_df)
+    ambient_df[SL.source_longitude] = [np.nan] * len(ambient_df)
+
+    # keep only the standard columns
+    explosion_df = explosion_df[STL.standard_labels]
+    ambient_df = ambient_df[STL.standard_labels]
+
+    # concatenate explosion and ambient dataframes
     shared_standardized_df = pd.concat([explosion_df, ambient_df], ignore_index=True)
-    return shared_standardized_df, shared_event_metadata
+    return shared_standardized_df, shared_event_metadata, shared_station_metadata
+
+
+def get_station_model(station_label_string):
+    return station_label_string.split(" ")[-1].split("-")[0]
+
+
+def get_station_network(station_label_string):
+    return station_label_string.split(" ")[0]
+
+
+def get_orex_station_locations():
+    full_orex_df = pd.read_pickle(os.path.join(DIRECTORY_PATH, OREX_FULL_FILENAME))
+    station_locs = {}
+    for station in full_orex_df.index:
+        station_id = full_orex_df["station_id"][station]
+        station_lats = full_orex_df[OL.station_lat][station]
+        station_lons = full_orex_df[OL.station_lon][station]
+        station_alts = full_orex_df[OL.station_alt][station]
+        best_station_lat = np.nanmedian(station_lats)
+        best_station_lon = np.nanmedian(station_lons)
+        best_station_alt = np.nanmedian(station_alts)
+        station_locs[station_id] = {'lat': best_station_lat,
+                                    'lon': best_station_lon,
+                                    'alt': best_station_alt}
+    return station_locs
+
+
+def standardize_orex():
+    # load OREX dataset
+    orex_npz = np.load(os.path.join(DIRECTORY_PATH, OREX_FILENAME), allow_pickle=True)
+
+    # convert npz to dataframe
+    orex_df = pd.DataFrame()
+    for field in orex_npz.files:
+        field_element = orex_npz[field]
+        if len(field_element.shape) > 1:
+            field_element = [field_element[i, :] for i in range(field_element.shape[0])]
+        orex_df[field] = field_element
+
+    # add and fill event ID, sample rate, and ML label columns
+    audio_fs_hz: float = 800.0
+    orex_event_id: str = "OREX"
+    ml_label: str = "hypersonic"
+    n_signals = len(orex_df)
+    orex_df[OL.audio_fs] = [audio_fs_hz] * n_signals
+    orex_df[OL.event_id] = [orex_event_id] * n_signals
+    orex_df[STL.ml_label] = [ml_label] * n_signals
+
+    # extract station model and network data from station labels and add to the DataFrame
+    orex_df[OL.station_model] = [get_station_model(sls) for sls in orex_df[OL.station_label]]
+    orex_df[OL.station_network] = [get_station_network(sls) for sls in orex_df[OL.station_label]]
+
+    # get station locations from full OREX PKL file
+    station_locations = get_orex_station_locations()
+
+    # add station locations to the DataFrame
+    lat, lon, alt = [], [], []
+    for station in orex_df.index:
+        station_id = orex_df[OL.station_id][station]
+        if station_id in station_locations:
+            lat.append(station_locations[station_id]['lat'])
+            lon.append(station_locations[station_id]['lon'])
+            alt.append(station_locations[station_id]['alt'])
+        else:
+            lat.append(np.nan)
+            lon.append(np.nan)
+            alt.append(np.nan)
+    orex_df[OL.station_lat] = lat
+    orex_df[OL.station_lon] = lon
+    orex_df[OL.station_alt] = alt
+
+    # TODO: decide how to incorporate OREX event metadata--trajectory info?
+
+    # compile OREX station metadata
+    orex_station_metadata = compile_station_metadata(
+        orex_df,
+        OL.station_id,
+        OL.station_metadata)
+
+    # rename columns to standard labels and fill in any missing standard columns with NaNs
+    # TODO: decide how to incorporate source location and time info
+    orex_df = stl.standardize_df_columns(dataset=orex_df, label_map=OL.standardize_dict)
+    for col in STL.standard_labels:
+        if col not in orex_df.columns:
+            orex_df[col] = [np.nan] * n_signals
+
+    # keep only the standard labels
+    orex_df = orex_df[STL.standard_labels]
+    return orex_df, orex_station_metadata
 
 
 def main():
-    astra_standard_df, astra_metadata_df = standardize_astra()
-    shared_standard_df, shared_metadata_df = standardize_shared()
-    astra_standard_df.to_pickle(os.path.join(DIRECTORY_PATH, ASTRA_STANDARDIZED_FILE_NAME))
-    shared_standard_df.to_pickle(os.path.join(DIRECTORY_PATH, SHARED_STANDARDIZED_FILE_NAME))
-    astra_metadata_df.to_csv(os.path.join(DIRECTORY_PATH, ASTRA_MD_FILE_NAME), index=True)
-    shared_metadata_df.to_csv(os.path.join(DIRECTORY_PATH, SHARED_MD_FILE_NAME), index=True)
+    astra_standard_df, astra_event_metadata, astra_station_metadata = standardize_astra()
+    astra_standard_df.to_pickle(os.path.join(DIRECTORY_PATH, ASTRA_STANDARDIZED_FILENAME))
+    astra_event_metadata.to_csv(os.path.join(DIRECTORY_PATH, ASTRA_EVENT_MD_FILENAME), index=True)
+    astra_station_metadata.to_csv(os.path.join(DIRECTORY_PATH, ASTRA_STATION_MD_FILENAME), index=True)
+
+    shared_standard_df, shared_event_metadata, shared_station_metadata = standardize_shared()
+    shared_standard_df.to_pickle(os.path.join(DIRECTORY_PATH, SHARED_STANDARDIZED_FILENAME))
+    shared_event_metadata.to_csv(os.path.join(DIRECTORY_PATH, SHARED_EVENT_MD_FILENAME), index=True)
+    shared_station_metadata.to_csv(os.path.join(DIRECTORY_PATH, SHARED_STATION_MD_FILENAME), index=True)
+
+    orex_standard_df, orex_station_metadata = standardize_orex()
+    orex_standard_df.to_pickle(os.path.join(DIRECTORY_PATH, OREX_STANDARDIZED_FILENAME))
+    orex_station_metadata.to_csv(os.path.join(DIRECTORY_PATH, OREX_STATION_MD_FILENAME), index=True)
+
+    merged_df = pd.concat([astra_standard_df, shared_standard_df, orex_standard_df], ignore_index=True)
+    print(merged_df)
+    print(merged_df.columns)
+    merged_df.to_pickle(os.path.join(DIRECTORY_PATH, MERGED_DS_FILENAME))
 
 
 if __name__ == "__main__":
+    pd.options.mode.copy_on_write = True
     main()
