@@ -248,7 +248,8 @@ class SHAReDLabels:
             self.internal_location_longitude: standard_labels.station_lon,
             self.source_latitude: standard_labels.source_lat,
             self.source_longitude: standard_labels.source_lon,
-            self.ambient_microphone_data: standard_labels.audio_wf}
+            self.ambient_microphone_data: standard_labels.audio_wf,
+            self.explosion_detonation_time: standard_labels.source_epoch_s}
 
 
 class ESC50Labels:
