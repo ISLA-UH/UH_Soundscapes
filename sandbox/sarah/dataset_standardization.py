@@ -10,7 +10,7 @@ import os
 from typing import Dict, List
 
 from fastkml import kml, styles
-from fastkml.features import Placemark
+from fastkml.features import Placemark, Point
 from fastkml.utils import find_all
 
 from pygeoif.geometry import Point as pyPoint
@@ -40,12 +40,13 @@ ESC50_FILENAME: str = "esc50_df_800Hz.pkl"
 ESC50_STANDARDIZED_FILENAME: str = "ESC50_800Hz_standardized.pkl"
 ESC50_EVENT_MD_FILENAME: str = "ESC50_event_metadata.csv"
 
-OREX_FILENAME: str = "orex_best_mics_800hz_1024pt.npz"
+OREX_NPZ_FILENAME: str = "orex_best_mics_800hz_1024pt.npz"
+OREX_PKL_FILENAME: str = "orex_best_mics_800hz_1024pt.pkl"
 OREX_STANDARDIZED_FILENAME: str = "OREX_standardized.pkl"
 OREX_EVENT_MD_FILENAME: str = "OREX_event_metadata.csv"
 OREX_STATION_MD_FILENAME: str = "OREX_station_metadata.csv"
 OREX_FULL_FILENAME: str = "all_stations_3min_dataframe.pkl"
-OREX_KML_FILENAME: str = "OSIRIS-REx_deployment.kml"
+OREX_KML_FILENAME: str = "orex_redvox_best_stations_v03.kml"
 
 MERGED_DS_FILENAME: str = "merged_standardized_dataset.pkl"
 
@@ -54,6 +55,7 @@ INCLUDE_SHAReD: bool = True
 INCLUDE_OREX: bool = True
 INCLUDE_ESC50: bool = True
 SAVE_METADATA: bool = True
+MERGE_DATASETS: bool = True
 
 
 def select_astra_rocket_samples(astra_df, al=AL) -> pd.DataFrame:
@@ -279,30 +281,107 @@ def get_station_network(station_label_string) -> str:
     return station_label_string.split(" ")[0]
 
 
-def get_orex_station_locations_pkl() -> Dict[str, Dict[str, float]]:
+def extract_orex_station_locs_pkl(station_label_map: Dict[str, str], full_orex_pkl_path: str = os.path.join(DIRECTORY_PATH, OREX_FULL_FILENAME)) -> Dict[str, Dict[str, float]]:
     """
     Function to extract the best station locations from the full OREX PKL file
-    :return: dictionary of station locations (lat, lon, alt) with station IDs as keys
+    :param station_label_map: dictionary mapping Redvox station IDs to station labels
+    :param full_orex_pkl_path: full path of the OREX PKL file containing station location data
+    :return: dictionary of station locations (lat, lon, alt) with station labels as keys
     """
-    full_orex_df = pd.read_pickle(os.path.join(DIRECTORY_PATH, OREX_FULL_FILENAME))
+    full_orex_df: pd.DataFrame = pd.read_pickle(full_orex_pkl_path)
     station_locs = {}
     for station in full_orex_df.index:
-        station_id = full_orex_df["station_id"][station]
+        station_id: str = full_orex_df["station_id"][station]
+        if station_id not in station_label_map.keys():
+            continue
+        station_label = station_label_map[station_id]
         station_lats = full_orex_df[OL.station_lat][station]
         station_lons = full_orex_df[OL.station_lon][station]
         station_alts = full_orex_df[OL.station_alt][station]
-        best_station_lat = np.nanmedian(station_lats).item()
-        best_station_lon = np.nanmedian(station_lons).item()
-        best_station_alt = np.nanmedian(station_alts).item()
-        station_locs[station_id] = {'lat': best_station_lat,
-                                    'lon': best_station_lon,
-                                    'alt': best_station_alt}
+        best_station_lat: float = np.nanmedian(station_lats).item()
+        best_station_lon: float = np.nanmedian(station_lons).item()
+        best_station_alt: float = np.nanmedian(station_alts).item()
+        station_locs[station_label] = {'lat': best_station_lat,
+                                       'lon': best_station_lon,
+                                       'alt': best_station_alt}
     return station_locs
 
 
-def load_kml(kml_file: str) -> Dict[str, Dict[str, float]]:
+def merge_coord(a: float, b: float) -> float:
     """
-    load location from a kml file
+    Function to merge two coordinate values, returning their mean if they are within 10% of each other, otherwise NaN.
+    :param a: first coordinate value
+    :param b: second coordinate value
+    :return: merged coordinate value
+    """
+    if np.isnan(a) and np.isnan(b):
+        return 0.0
+    elif np.isnan(a):
+        return b
+    elif np.isnan(b):
+        return a
+    else:
+        mean: float = (a + b) / 2
+        if abs(a - b) / mean > 0.1:  # if the two values differ by more than 10%, return NaN
+            return np.nan
+        else:
+            return mean
+
+
+def merge_orex_station_locs(station_label_map: Dict[str, str], orex_kml_path: str = os.path.join(DIRECTORY_PATH, OREX_KML_FILENAME), orex_full_pkl_path: str = os.path.join(DIRECTORY_PATH, OREX_FULL_FILENAME)) -> Dict[
+    str, Dict[str, float]]:
+    """
+    Function to compare the station location data extracted from OREX PKL and KML files and select the best available
+    data
+    :param orex_full_pkl_path: path to PKL file containing OREX station location data
+    :param orex_kml_path: path to KML file containing OREX station location data
+    :param station_label_map: dictionary mapping Redvox station IDs to OREX station labels
+    :return: dictionary of OREX station locations (lat, lon, alt) with station labels as keys
+    """
+    # extract location data from both files
+    kml_locs = extract_orex_station_locs_kml(orex_kml_path)
+    pkl_locs = extract_orex_station_locs_pkl(station_label_map, orex_full_pkl_path)
+    # get all unique station labels from both files
+    station_labels = np.unique(np.array(list(kml_locs.keys()) + list(pkl_locs.keys())))
+    # initialize an empty dictionary to hold merged locations
+    merged_locs = {}
+    # loop through all station labels
+    for station_label in station_labels:
+        # loop through both location dictionaries to ensure each has an entry for the current station label
+        for loc_dict in [kml_locs, pkl_locs]:
+            if station_label not in loc_dict.keys():
+                # add an entry with NaNs if the station label is missing
+                loc_dict[station_label] = {'lat': np.nan, 'lon': np.nan, 'alt': np.nan}
+            if loc_dict[station_label]['alt'] == 0.0:
+                # if altitude is 0.0, set it to NaN to avoid biasing the merged result
+                loc_dict[station_label]['alt'] = np.nan
+        # merge the coordinates from both dictionaries
+        merged_locs[station_label] = {
+            'lat': merge_coord(kml_locs[station_label]['lat'], pkl_locs[station_label]['lat']),
+            'lon': merge_coord(kml_locs[station_label]['lon'], pkl_locs[station_label]['lon']),
+            'alt': merge_coord(kml_locs[station_label]['alt'], pkl_locs[station_label]['alt']),
+        }
+    return merged_locs
+
+
+def check_if_station(place_name: str):
+    """
+    Function to check if a placemark's name matches the format of an OREX station name
+    :param place_name: the name of the placemark
+    :return: True if the placemark's name could correspond to a recording station, False otherwise
+    """
+    place_name_split = place_name.split(" ")
+    if len(place_name_split) != 2:
+        return False
+    elif place_name_split[0] not in ["CLIVE", "EUREK", "ALOFT", "WEND", "WARR"]:
+        return False
+    else:
+        return True
+
+
+def extract_orex_station_locs_kml(kml_file: str) -> Dict[str, Dict[str, float]]:
+    """
+    Load locations of OSIRIS-REx recording stations from a KML file
     :param kml_file: full path of the file to load data from
     :return: dictionary of locations with identifiers
     """
@@ -310,19 +389,26 @@ def load_kml(kml_file: str) -> Dict[str, Dict[str, float]]:
     locations: list[Placemark] = list(find_all(kml_data, of_type=Placemark))
     set_locations = {}
     for place in locations:
+        if place.geometry is None:
+            continue
+        elif type(place.geometry) is not pyPoint:
+            continue
+        if not check_if_station(place.name):
+            continue
         set_locations[place.name] = {"lon": place.geometry.x, "lat": place.geometry.y, "alt": place.geometry.z}
     return set_locations
 
 
-def compare_kml_pkl_locs(max_dist_m: float = 20.0) -> Dict[str, str]:
+def compare_kml_pkl_locs(station_label_map: dict, max_dist_m: float = 20.0) -> Dict[str, str]:
     """
+    DEPRECATED AS OF 9/5/25
     Function to compare the coordinates in the KML and PKL files
     :return: dictionary mapping Redvox station IDs to KML station names if the KML and PKL coords are within max_dist_m
     """
     # get station locations from full OREX PKL file
-    station_locations_pkl = get_orex_station_locations_pkl()
+    station_locations_pkl = extract_orex_station_locs_pkl(station_label_map)
     # get station locations from OREX KML file
-    station_locations_kml = load_kml(os.path.join(DIRECTORY_PATH, OREX_KML_FILENAME))
+    station_locations_kml = extract_orex_station_locs_kml(os.path.join(DIRECTORY_PATH, OREX_KML_FILENAME))
     station_ids = list(station_locations_pkl.keys())
 
     kml_station_id_map = {}
@@ -346,26 +432,24 @@ def compare_kml_pkl_locs(max_dist_m: float = 20.0) -> Dict[str, str]:
         dist_df["dist_m"] = distances
         dist_df.sort_values(by="dist_m", inplace=True)
         print(f"Closest KML stations to Redvox station {station_id}:")
-        for kml_station in dist_df.index:
-            print(f"\t{dist_df['kml_station'][kml_station]}: {dist_df['dist_m'][kml_station]:.1f} meters")
+        for kml_station in dist_df.index[:3]:
+            print(f"\t{dist_df['kml_station'][kml_station]}: {dist_df['dist_m'][kml_station]:.4f} meters")
         if dist_df["dist_m"][dist_df.index[0]] < max_dist_m:
             kml_station_id_map[station_id] = dist_df["kml_station"][dist_df.index[0]]
     stations_missing_from_kml = [sid for sid in station_ids if sid not in kml_station_id_map.keys()]
-    print(f"Station in PKL file missing from KML:")
+    print(f"Stations in PKL file missing from KML:")
     for msid in stations_missing_from_kml:
         print(f"\t{msid}")
     return kml_station_id_map
 
 
-def standardize_orex(location_source: str = 'pkl') -> (pd.DataFrame, pd.DataFrame):
+def load_orex_npz(orex_npz_path: str = os.path.join(DIRECTORY_PATH, OREX_NPZ_FILENAME)) -> pd.DataFrame:
     """
-    Master function to standardize the OREX hypersonic dataset
-    :param location_source: string ('pkl', 'kml', or 'best') indicating which source of station location data to use
-    :return: pandas DataFrames containing the standardized dataset and the OREX metadata
+    Load the OREX dataset from an NPZ file
+    :param orex_npz_path: string of full path to NPZ file containing OREX data from the best stations
+    :return: pandas DataFrame containing the OREX data
     """
-    # load OREX dataset
-    orex_npz = np.load(os.path.join(DIRECTORY_PATH, OREX_FILENAME), allow_pickle=True)
-
+    orex_npz = np.load(orex_npz_path, allow_pickle=True)
     # convert npz to dataframe
     orex_df = pd.DataFrame()
     for field in orex_npz.files:
@@ -373,46 +457,105 @@ def standardize_orex(location_source: str = 'pkl') -> (pd.DataFrame, pd.DataFram
         if len(field_element.shape) > 1:
             field_element = [field_element[i, :] for i in range(field_element.shape[0])]
         orex_df[field] = field_element
+    return orex_df
+
+
+def standardize_orex(location_source: str = 'kml',
+                     orex_npz_path: str = os.path.join(DIRECTORY_PATH, OREX_NPZ_FILENAME),
+                     orex_pkl_path: str = os.path.join(DIRECTORY_PATH, OREX_PKL_FILENAME),
+                     orex_full_pkl_path: str = os.path.join(DIRECTORY_PATH, OREX_FULL_FILENAME),
+                     orex_kml_path: str = os.path.join(DIRECTORY_PATH, OREX_KML_FILENAME),
+                     orex_audio_fs_hz: float = 800.0,
+                     orex_event_id: str = "OREX",
+                     orex_ml_label: str = "hypersonic",
+                     load_from: str = "pkl",
+                     export_to: str = "pkl",
+                     ) -> (pd.DataFrame, pd.DataFrame):
+    """
+    Master function to standardize the OREX hypersonic dataset
+    :param orex_npz_path: string of full path to NPZ file containing OREX data from the best stations
+    :param orex_pkl_path: string of full path to PKL file containing OREX data from the best stations
+    :param orex_full_pkl_path: string of full path to PKL file containing OREX data from all stations
+    :param orex_kml_path: string of full path to KML file containing OREX station location data
+    :param location_source: string ('pkl', 'kml', or 'both') indicating which source(s) of station location data to use
+    :param orex_audio_fs_hz: the sample rate of the OREX audio data in Hz
+    :param orex_event_id: the event ID string to assign to all OREX signals
+    :param orex_ml_label: the ML label string to assign to all OREX signals
+    :param load_from: string ('pkl' or 'npz') indicating which file format to load the OREX data from
+    :param export_to: string ('pkl' or 'npz') indicating which file format to export the standardized OREX data to
+    :return: pandas DataFrames containing the standardized dataset and the OREX metadata
+    """
+    # load OREX dataset
+    if load_from == "npz":
+        if os.path.isfile(orex_npz_path):
+            orex_df = load_orex_npz(orex_npz_path)
+        else:
+            print("NPZ file not found. Attempting to load from PKL file instead.")
+            orex_df = pd.read_pickle(orex_pkl_path)
+    elif load_from == "pkl":
+        if os.path.isfile(orex_pkl_path):
+            orex_df = pd.read_pickle(orex_pkl_path)
+        else:
+            print("PKL file not found. Attempting to load from NPZ file instead.")
+            orex_df = load_orex_npz(orex_npz_path)
+    else:
+        print("Invalid load_from parameter. Must be 'pkl' or 'npz'. Attempting to load from PKL file instead.")
+        try:
+            orex_df = pd.read_pickle(orex_pkl_path)
+        except FileNotFoundError:
+            print("PKL file not found. Attempting to load from NPZ file instead.")
+            orex_df = load_orex_npz(orex_npz_path)
+
+    # save original columns to export later
+    og_orex_columns = orex_df.columns.tolist()
 
     # add and fill event ID, sample rate, and ML label columns
-    audio_fs_hz: float = 800.0
-    orex_event_id: str = "OREX"
-    ml_label: str = "hypersonic"
     n_signals = len(orex_df)
-    orex_df[OL.audio_fs] = [audio_fs_hz] * n_signals
-    orex_df[OL.event_id] = [orex_event_id] * n_signals
-    orex_df[STL.ml_label] = [ml_label] * n_signals
+    if OL.audio_fs not in orex_df.columns:
+        orex_df[OL.audio_fs] = [orex_audio_fs_hz] * n_signals
+    if OL.event_id not in orex_df.columns:
+        orex_df[OL.event_id] = [orex_event_id] * n_signals
+    if STL.ml_label not in orex_df.columns:
+        orex_df[STL.ml_label] = [orex_ml_label] * n_signals
 
     # extract station model and network data from station labels and add to the DataFrame
-    orex_df[OL.station_model] = [get_station_model(sls) for sls in orex_df[OL.station_label]]
-    orex_df[OL.station_network] = [get_station_network(sls) for sls in orex_df[OL.station_label]]
+    if OL.station_model not in orex_df.columns:
+        orex_df[OL.station_model] = [get_station_model(sls) for sls in orex_df[OL.station_label]]
+    if OL.station_network not in orex_df.columns:
+        orex_df[OL.station_network] = [get_station_network(sls) for sls in orex_df[OL.station_label]]
 
-    if location_source == "kml":
-        # TODO: find missing ground truth locations--another KML file somewhere with CLIVE stations?
-        # # get station locations from OREX KML file
-        # station_locations = load_kml(os.path.join(DIRECTORY_PATH, OREX_KML_FILENAME))
-        raise NotImplementedError("KML location source not yet implemented.")
-    elif location_source == "best":
-        # TODO: decide how to incorporate KML coords (1-12 meter diff from PKL)
-        #  Option 1: take mean of KML coords and 'best' samples median from PKL
-        #  Option 2: add KML coords to 'best' samples before taking median
-        #  Option 3: use KML or PKL alone
-        raise NotImplementedError("Best location option not yet implemented.")
-    else:
+    if OL.station_lat not in orex_df.columns or OL.station_lon not in orex_df.columns or OL.station_alt not in orex_df.columns:
+        # make dict mapping redvox station ids to orex station labels
+        station_label_map = dict(zip(orex_df[OL.station_id], orex_df[OL.station_label]))
+
         # TODO: validate altitude values and units in PKL file
-        # get station locations from full OREX PKL file
-        station_locations = get_orex_station_locations_pkl()
+        if location_source == "kml":
+            # get station locations from OREX KML file
+            station_locations = extract_orex_station_locs_kml(orex_kml_path)
+        elif location_source == "both":
+            # get station locations by merging data from both KML and PKL files
+            station_locations = merge_orex_station_locs(station_label_map, orex_kml_path, orex_full_pkl_path)
+        else:
+            # get station locations from full OREX PKL file
+            station_locations = extract_orex_station_locs_pkl(station_label_map, orex_full_pkl_path)
 
-    # add station locations to the DataFrame
-    lat, lon, alt = [], [], []
-    for station in orex_df.index:
-        station_id = orex_df[OL.station_id][station]
-        lat.append(station_locations[station_id]['lat'])
-        lon.append(station_locations[station_id]['lon'])
-        alt.append(station_locations[station_id]['alt'])
-    orex_df[OL.station_lat] = lat
-    orex_df[OL.station_lon] = lon
-    orex_df[OL.station_alt] = alt
+        # add station locations to the DataFrame
+        lat, lon, alt = [], [], []
+        for station in orex_df.index:
+            station_label = orex_df[OL.station_label][station]
+            lat.append(station_locations[station_label]['lat'])
+            lon.append(station_locations[station_label]['lon'])
+            alt.append(station_locations[station_label]['alt'])
+        orex_df[OL.station_lat] = lat
+        orex_df[OL.station_lon] = lon
+        orex_df[OL.station_alt] = alt
+
+    if export_to == "pkl":
+        # export the data from the NPZ plus the location data to a PKL file
+        columns_to_export = og_orex_columns + [OL.station_lat, OL.station_lon, OL.station_alt]
+        orex_df_to_export = orex_df[columns_to_export]
+        orex_df_to_export.to_pickle(orex_pkl_path)
+        print(f"Exported OREX acoustic, location, and meta data to {orex_pkl_path}")
 
     # TODO: decide how to incorporate OREX event metadata--include estimates of source locations and times
     #  calculated for UPR poster?
@@ -424,8 +567,6 @@ def standardize_orex(location_source: str = 'pkl') -> (pd.DataFrame, pd.DataFram
         OL.station_metadata)
 
     # rename columns to standard labels and fill in any missing standard columns with NaNs
-    # TODO: decide how to incorporate source location and time info--use estimates of source locations and times
-    #  calculated for UPR poster?
     orex_df = stl.standardize_df_columns(dataset=orex_df, label_map=OL.standardize_dict)
     for col in STL.standard_labels:
         if col not in orex_df.columns:
@@ -442,34 +583,44 @@ def main():
     if INCLUDE_ASTRA:
         astra_standard_df, astra_event_metadata, astra_station_metadata = standardize_astra()
         astra_standard_df.to_pickle(os.path.join(DIRECTORY_PATH, ASTRA_STANDARDIZED_FILENAME))
+        print(f"Exported standardized ASTRA dataset to {os.path.join(DIRECTORY_PATH, ASTRA_STANDARDIZED_FILENAME)}")
         datasets_to_merge.append(astra_standard_df)
         if SAVE_METADATA:
             astra_event_metadata.to_csv(os.path.join(DIRECTORY_PATH, ASTRA_EVENT_MD_FILENAME), index=True)
+            print(f"Exported ASTRA event metadata to {os.path.join(DIRECTORY_PATH, ASTRA_EVENT_MD_FILENAME)}")
             astra_station_metadata.to_csv(os.path.join(DIRECTORY_PATH, ASTRA_STATION_MD_FILENAME), index=True)
+            print(f"Exported ASTRA station metadata to {os.path.join(DIRECTORY_PATH, ASTRA_STATION_MD_FILENAME)}")
 
     if INCLUDE_SHAReD:
         shared_standard_df, shared_event_metadata, shared_station_metadata = standardize_shared()
         shared_standard_df.to_pickle(os.path.join(DIRECTORY_PATH, SHARED_STANDARDIZED_FILENAME))
+        print(f"Exported standardized SHAReD dataset to {os.path.join(DIRECTORY_PATH, SHARED_STANDARDIZED_FILENAME)}")
         datasets_to_merge.append(shared_standard_df)
         if SAVE_METADATA:
             shared_event_metadata.to_csv(os.path.join(DIRECTORY_PATH, SHARED_EVENT_MD_FILENAME), index=True)
+            print(f"Exported SHAReD event metadata to {os.path.join(DIRECTORY_PATH, SHARED_EVENT_MD_FILENAME)}")
             shared_station_metadata.to_csv(os.path.join(DIRECTORY_PATH, SHARED_STATION_MD_FILENAME), index=True)
+            print(f"Exported SHAReD station metadata to {os.path.join(DIRECTORY_PATH, SHARED_STATION_MD_FILENAME)}")
 
     if INCLUDE_OREX:
-        compare_kml_pkl_locs()
-        orex_standard_df, orex_station_metadata = standardize_orex(location_source='pkl')
+        orex_standard_df, orex_station_metadata = standardize_orex(
+            location_source='both', load_from="pkl", export_to="none")
         orex_standard_df.to_pickle(os.path.join(DIRECTORY_PATH, OREX_STANDARDIZED_FILENAME))
+        print(f"Exported standardized OREX dataset to {os.path.join(DIRECTORY_PATH, OREX_STANDARDIZED_FILENAME)}")
         datasets_to_merge.append(orex_standard_df)
         if SAVE_METADATA:
             orex_station_metadata.to_csv(os.path.join(DIRECTORY_PATH, OREX_STATION_MD_FILENAME), index=True)
+            print(f"Exported OREX metadata to {os.path.join(DIRECTORY_PATH, OREX_STATION_MD_FILENAME)}")
 
     if INCLUDE_ESC50:
         print("ESC-50 standardization not yet implemented.")
 
-    merged_df = pd.concat(datasets_to_merge, ignore_index=True)
-    print(merged_df)
-    print(merged_df.columns)
-    merged_df.to_pickle(os.path.join(DIRECTORY_PATH, MERGED_DS_FILENAME))
+    if MERGE_DATASETS:
+        merged_df = pd.concat(datasets_to_merge, ignore_index=True)
+        print(merged_df)
+        print(merged_df.columns)
+        merged_df.to_pickle(os.path.join(DIRECTORY_PATH, MERGED_DS_FILENAME))
+        print(f"Exported merged dataset to {os.path.join(DIRECTORY_PATH, MERGED_DS_FILENAME)}")
 
 
 if __name__ == "__main__":
