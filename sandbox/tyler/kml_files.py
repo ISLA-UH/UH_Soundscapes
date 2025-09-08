@@ -6,6 +6,7 @@ import pathlib
 from typing import Dict
 
 from fastkml import kml, styles
+from fastkml.containers import Document
 from fastkml.features import Placemark
 from fastkml.utils import find_all
 from pygeoif.geometry import Point as pyPoint
@@ -38,7 +39,7 @@ def write_kml(kml_file: str, master_dict: Dict[str, Dict[str, float]]):
     pnt_style = styles.IconStyle(id="is3", color="ff0000ff",
                                  icon_href="http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png")
     doc_style = styles.Style(id="s2", styles=[pnt_style])
-    doc = kml.Document(ns, id="d1", styles=[doc_style])
+    doc = Document(ns, id="d1", styles=[doc_style])
     # id is assigned dynamically as new elements are created
     new_id = 4
     for key in master_dict.keys():
@@ -49,8 +50,8 @@ def write_kml(kml_file: str, master_dict: Dict[str, Dict[str, float]]):
         new_point = pyPoint(x=master_dict[key]["mean lon"],
                             y=master_dict[key]["mean lat"],
                             z=master_dict[key]["mean alt"])
-        pnt = kml.Placemark(ns, id=str(f"p{new_id}"), name=key, description=description,
-                            style_url=styles.StyleUrl(url="#s2"), geometry=new_point)
+        pnt = Placemark(ns, id=str(f"p{new_id}"), name=key, description=description,
+                        style_url=styles.StyleUrl(url="#s2"), geometry=new_point)
         new_id += 1
         # add placemark to doc
         doc.append(pnt)
