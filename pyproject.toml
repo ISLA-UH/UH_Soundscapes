@@ -17,6 +17,7 @@ license = "Apache-2.0"
 # quantum-inferno brings matplotlib, numpy, scipy, and setuptools with it.
 # put specific versions of those modules here, if needed.
 dependencies = [
+    "fastkml>=1.1.0", # fastkml is used to read and write kml files
     "ipykernel>=6.30.0", # ipykernel is used to run jupyter notebooks
     "pandas>=2.1.3", # Pandas is a library for data manipulation and analysis in Python.
     "quantum-inferno>=1.1.3", # Quantum Inferno computes multirez time-frequency representations with Gabor atoms.
