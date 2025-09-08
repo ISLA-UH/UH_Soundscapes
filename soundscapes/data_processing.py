@@ -4,7 +4,19 @@ This module contains utility functions for processing data.
 import numpy as np
 
 
+def max_norm(data: np.ndarray) -> np.ndarray:
+    """
+    :param data: data array to normalize
+    :return: maximum norm
+    """
+    return data / np.nanmax(np.abs(data))
+
+
 def demean_norm(signal: np.ndarray) -> np.ndarray:
+    """
+    :param signal: input signal
+    :return: demeaned and normalized signal
+    """
     signal = signal - np.nanmean(signal)
     return signal / np.nanmax(np.abs(signal))
 
