@@ -1,10 +1,9 @@
 """
-OREX Reader
+OREX Reader Class
 
 OREX example is simple enough that it doesn't need to inherit from the dataset_reader classes.
 
 The files can be downloaded from https://www.higp.hawaii.edu/archive/isla/UH_Soundscapes/OREX/
-
 """
 import os
 
@@ -22,18 +21,15 @@ class OREXReader:
     """
     A class to read and analyze the OREX dataset.
     """
-    def __init__(self, input_path: str, default_filename: str) -> None:
+    def __init__(self, input_path: str, input_filename: str) -> None:
         """
         Initialize the OREX reader.
 
         :param input_path: str, path to the dataset file.
-        :param default_filename: str, default filename to use if the input file is not found.
-        :param save_path: str, path to the directory where output files will be saved.
+        :param input_filename: str, name of the input file.
         """
         self.dataset_name = "OREX"
-        self.input_path = input_path
-        self.default_filename = default_filename
-        self.input_file = os.path.join(self.input_path, self.default_filename)
+        self.input_file = os.path.join(input_path, input_filename)
         try:
             sig_np: np.ndarray = np.load(self.input_file, allow_pickle=True)
         except Exception as e:
@@ -114,7 +110,7 @@ class OREXReader:
 
 
 if __name__=="__main__":
-    orx = OREXReader(input_path=os.getcwd(), default_filename="orex_best_mics_800hz_1024pt.npz")
+    orx = OREXReader(input_path=os.getcwd(), input_filename="orex_best_mics_800hz_1024pt.npz")
     orx.plot_waveforms()
     orx.plot_spectrogram()
     plt.show()
