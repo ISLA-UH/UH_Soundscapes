@@ -106,7 +106,7 @@ class OREXReader:
             mesh_panel = ptb.MeshPanel(mic_stx_bits, colormap_scaling="range", cbar_units="log$_2$(Power)")
             stx = plot_mesh_wf_vert(mesh_base, mesh_panel, wf_base, wf_panel)
 
-            plt.show()
+        plt.show()
 
 
 if __name__=="__main__":
