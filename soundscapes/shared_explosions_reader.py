@@ -1,6 +1,8 @@
 """
 SHAReD Explosions Reader using DatasetReader class
 
+The files can be downloaded from https://www.higp.hawaii.edu/archive/isla/UH_Soundscapes/SHAReD/
+
 IDE note: inherited classes aren't properly recognized, so the IDE may not recognize
             some properties or methods.
 """

@@ -1,6 +1,8 @@
 """
 ESC50 Reader using DatasetReader class
 
+The files can be downloaded from https://www.higp.hawaii.edu/archive/isla/UH_Soundscapes/ESC50/
+
 IDE note: inherited classes aren't properly recognized, so the IDE may not recognize
             some properties or methods.
 """
