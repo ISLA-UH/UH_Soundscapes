@@ -587,6 +587,37 @@ def standardize_orex(orex_df: pd.DataFrame,
     return orex_df, orex_station_metadata
 
 
+def standardize_esc50(esc50_df: pd.DataFrame,
+                     ) -> (pd.DataFrame, pd.DataFrame):
+    """
+    Master function to standardize the ESC-50 environmental sound dataset
+    :param esc50_df: pandas DataFrame containing the ESC-50 data
+    :return: pandas DataFrames containing the standardized dataset and the ESC-50 metadata
+    """
+    # add and fill event ID, sample rate, and ML label columns if they are missing
+    n_signals = len(esc50_df)
+    if STL.data_source not in esc50_df.columns:
+        esc50_df[STL.data_source] = ["ESC-50"] * n_signals
+
+    # compile ESC-50 event metadata
+    esc50_event_metadata = compile_metadata(
+        esc50_df,
+        EL.clip_id,
+        EL.event_metadata)
+
+    # rename columns to standard labels and fill in any missing standard columns with NaNs
+    esc50_df = stl.standardize_df_columns(dataset=esc50_df, label_map=EL.standardize_dict)
+    for col in STL.standard_labels:
+        if col not in esc50_df.columns:
+            print(f"Standard column {col} missing from ESC-50 DataFrame. Filling column with NaN.")
+            esc50_df[col] = [np.nan] * n_signals
+
+    # keep only the standard labels
+    esc50_df = esc50_df[STL.standard_labels]
+
+    return esc50_df, esc50_event_metadata
+
+
 def main():
     datasets_to_merge = []
 
@@ -653,7 +684,17 @@ def main():
             print(f"Exported OREX metadata to {os.path.join(DIRECTORY_PATH, OREX_STATION_MD_FILENAME)}")
 
     if INCLUDE_ESC50:
-        print("ESC-50 standardization not yet implemented.")
+        esc50_df = pd.read_pickle(os.path.join(DIRECTORY_PATH, ESC50_FILENAME))
+        esc50_standard_df, esc50_event_metadata = standardize_esc50(esc50_df=esc50_df)
+        # export the standardized dataset
+        esc50_standard_df.to_pickle(os.path.join(DIRECTORY_PATH, ESC50_STANDARDIZED_FILENAME))
+        print(f"Exported standardized ESC-50 dataset to {os.path.join(DIRECTORY_PATH, ESC50_STANDARDIZED_FILENAME)}")
+        # add dataset to the list of datasets to merge
+        datasets_to_merge.append(esc50_standard_df)
+        # export metadata files
+        if SAVE_METADATA:
+            esc50_event_metadata.to_csv(os.path.join(DIRECTORY_PATH, ESC50_EVENT_MD_FILENAME), index=True)
+            print(f"Exported ESC-50 event metadata to {os.path.join(DIRECTORY_PATH, ESC50_EVENT_MD_FILENAME)}")
 
     # merge datasets into single DataFrame
     if MERGE_DATASETS:
