@@ -4,19 +4,17 @@ Aggregated Smartphone Timeseries of Rocket-generated Acoustics (ASTRA), Smartpho
 Dataset (SHAReD), OSIRIS-REx UH ISLA hypersonic signals (OREX), and the environmental sound classification dataset
 (ESC-50).
 """
-import pandas as pd
 import numpy as np
 import os
-from typing import Dict, List
+import pandas as pd
+from typing import Dict, Tuple
 
-from fastkml import kml, styles
-from fastkml.features import Placemark, Point
+from fastkml import kml
+from fastkml.features import Placemark
 from fastkml.utils import find_all
-
 from pygeoif.geometry import Point as pyPoint
-import geopandas as gpd
 
-import sandbox.sarah.standard_labels as stl
+import soundscapes.standard_labels as stl
 
 STL = stl.StandardLabels()
 SL = stl.SHAReDLabels()
@@ -60,9 +58,9 @@ MERGE_DATASETS: bool = True
 
 def summarize_dataset(df: pd.DataFrame) -> None:
     """
-    Function to print off a summary of a standardized dataset
+    Prints a summary of a standardized dataset
+
     :param df: pandas DataFrame containing a standardized dataset
-    :return: None
     """
     sources, source_counts = np.unique(df[STL.data_source].values, return_counts=True)
     labels, label_counts = np.unique(df[STL.ml_label].values, return_counts=True)
@@ -75,7 +73,10 @@ def summarize_dataset(df: pd.DataFrame) -> None:
         print(f"\t\t{count} signals labeled as '{label}'")
 
 
-def select_astra_rocket_samples(astra_df, al=AL) -> pd.DataFrame:
+def select_astra_rocket_samples(astra_df: pd.DataFrame, al: stl.ASTRALabels = AL) -> pd.DataFrame:
+    """
+    Select ASTRA rocket samples using the labels given.
+    """
     rocket_samples, t0s = [], []
     sample_dur = 5.
     for station in astra_df.index:
@@ -124,7 +125,7 @@ def select_astra_noise_samples(astra_df, al=AL) -> pd.DataFrame:
     return astra_df
 
 
-def get_astra_samples(raw_astra_df) -> (pd.DataFrame, pd.DataFrame):
+def get_astra_samples(raw_astra_df) -> Tuple[pd.DataFrame, pd.DataFrame]:
     # add and fill station altitude, data source, and station network columns
     raw_astra_df[STL.station_alt] = [0.0] * len(raw_astra_df)  # ASTRA stations are all surface stations
     raw_astra_df[STL.data_source] = ["ASTRA"] * len(raw_astra_df)  # all data is from the ASTRA dataset
@@ -184,7 +185,7 @@ def compile_metadata(df, index_column, metadata_columns) -> pd.DataFrame:
     return metadata_df
 
 
-def standardize_astra(astra_df: pd.DataFrame) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+def standardize_astra(astra_df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Master function to standardize the ASTRA dataset
     :param: astra_df: DataFrame containing the raw ASTRA data
@@ -210,7 +211,7 @@ def standardize_astra(astra_df: pd.DataFrame) -> (pd.DataFrame, pd.DataFrame, pd
     return astra_standardized_df, astra_event_metadata, astra_station_metadata
 
 
-def standardize_shared(shared_df: pd.DataFrame) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+def standardize_shared(shared_df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Master function to standardize the SHAReD dataset
     :param: shared_df: DataFrame containing the raw SHAReD data
@@ -304,8 +305,9 @@ def get_station_network(station_label_string) -> str:
 
 
 def extract_orex_station_locs_pkl(
-        station_label_map: Dict[str, str],
-        full_orex_pkl_path: str = os.path.join(DIRECTORY_PATH, OREX_FULL_FILENAME)) -> Dict[str, Dict[str, float]]:
+    station_label_map: Dict[str, str],
+    full_orex_pkl_path: str = os.path.join(DIRECTORY_PATH, OREX_FULL_FILENAME)
+) -> Dict[str, Dict[str, float]]:
     """
     Function to extract the best station locations from the full OREX PKL file
     :param station_label_map: dictionary mapping Redvox station IDs to station labels
@@ -359,9 +361,9 @@ def merge_coord(a: float, b: float) -> float:
 
 
 def merge_orex_station_locs(
-        station_label_map: Dict[str, str],
-        orex_kml_path: str = os.path.join(DIRECTORY_PATH, OREX_KML_FILENAME),
-        orex_full_pkl_path: str = os.path.join(DIRECTORY_PATH, OREX_FULL_FILENAME)
+    station_label_map: Dict[str, str],
+    orex_kml_path: str = os.path.join(DIRECTORY_PATH, OREX_KML_FILENAME),
+    orex_full_pkl_path: str = os.path.join(DIRECTORY_PATH, OREX_FULL_FILENAME)
 ) -> Dict[str, Dict[str, float]]:
     """
     Function to compare the station location data extracted from OREX PKL and KML files and select the best available
@@ -449,9 +451,11 @@ def load_orex_npz(orex_npz_path: str = os.path.join(DIRECTORY_PATH, OREX_NPZ_FIL
     return orex_df
 
 
-def load_orex_ds(orex_pkl_path: str = os.path.join(DIRECTORY_PATH, OREX_PKL_FILENAME),
-                 orex_npz_path: str = os.path.join(DIRECTORY_PATH, OREX_NPZ_FILENAME),
-                 load_method: str = "pkl") -> pd.DataFrame:
+def load_orex_ds(
+    orex_pkl_path: str = os.path.join(DIRECTORY_PATH, OREX_PKL_FILENAME),
+    orex_npz_path: str = os.path.join(DIRECTORY_PATH, OREX_NPZ_FILENAME),
+    load_method: str = "pkl"
+) -> pd.DataFrame:
     """
     Load the OREX dataset
     :param orex_pkl_path: string of full path to PKL file containing OREX data from the best stations
@@ -482,10 +486,11 @@ def load_orex_ds(orex_pkl_path: str = os.path.join(DIRECTORY_PATH, OREX_PKL_FILE
 
 
 def add_orex_location_data(
-        orex_df: pd.DataFrame,
-        location_source: str = "merged",
-        orex_kml_path: str = os.path.join(DIRECTORY_PATH, OREX_KML_FILENAME),
-        orex_full_pkl_path: str = os.path.join(DIRECTORY_PATH, OREX_FULL_FILENAME)) -> pd.DataFrame:
+    orex_df: pd.DataFrame,
+    location_source: str = "merged",
+    orex_kml_path: str = os.path.join(DIRECTORY_PATH, OREX_KML_FILENAME),
+    orex_full_pkl_path: str = os.path.join(DIRECTORY_PATH, OREX_FULL_FILENAME)
+) -> pd.DataFrame:
     """
     Add location data to the OREX DataFrame
     :param orex_df: pandas DataFrame containing the OREX data
@@ -534,11 +539,12 @@ def add_orex_location_data(
     return orex_df
 
 
-def standardize_orex(orex_df: pd.DataFrame,
-                     orex_audio_fs_hz: float = 800.0,
-                     orex_event_id: str = "OREX",
-                     orex_ml_label: str = "hypersonic",
-                     ) -> (pd.DataFrame, pd.DataFrame):
+def standardize_orex(
+    orex_df: pd.DataFrame,
+    orex_audio_fs_hz: float = 800.0,
+    orex_event_id: str = "OREX",
+    orex_ml_label: str = "hypersonic",
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
     Master function to standardize the OREX hypersonic dataset
     :param orex_df: pandas DataFrame containing the OREX data
@@ -587,8 +593,7 @@ def standardize_orex(orex_df: pd.DataFrame,
     return orex_df, orex_station_metadata
 
 
-def standardize_esc50(esc50_df: pd.DataFrame,
-                     ) -> (pd.DataFrame, pd.DataFrame):
+def standardize_esc50(esc50_df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
     Master function to standardize the ESC-50 environmental sound dataset
     :param esc50_df: pandas DataFrame containing the ESC-50 data
@@ -701,8 +706,9 @@ def main():
         # concatenate all DataFrames in the list
         merged_df = pd.concat(datasets_to_merge, ignore_index=True)
         # export the merged dataset
-        merged_df.to_pickle(os.path.join(DIRECTORY_PATH, MERGED_DS_FILENAME))
-        print(f"Exported merged dataset to {os.path.join(DIRECTORY_PATH, MERGED_DS_FILENAME)}")
+        merged_path = os.path.join(DIRECTORY_PATH, MERGED_DS_FILENAME)
+        merged_df.to_pickle(merged_path)
+        print(f"Exported merged dataset to {merged_path}")
         summarize_dataset(merged_df)
 
 

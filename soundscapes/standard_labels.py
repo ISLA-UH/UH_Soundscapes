@@ -4,7 +4,6 @@ various datasets. These classes help ensure consistency when accessing, manipula
 sources. A standard set of labels is also included, along with methods to convert between different naming conventions
 if needed.
 """
-
 from typing import List
 
 import pandas as pd
@@ -14,7 +13,6 @@ class StandardLabels:
     """
     A class containing the column names used in standardized datasets for machine learning applications.
     """
-
     def __init__(
             self,
             station_id: str = "station_id",
@@ -89,7 +87,6 @@ class ASTRALabels:
     """
     A class containing the column names used in ASTRA.
     """
-
     def __init__(
             self,
             station_id: str = "station_id",
@@ -185,7 +182,6 @@ class SHAReDLabels:
     """
     A class containing the column names used in the SHAReD dataset.
     """
-
     def __init__(self):
         self.event_name: str = "event_name"
         self.source_yield_kg: str = "source_yield_kg"
@@ -256,7 +252,6 @@ class ESC50Labels:
     """
     A class containing the column names used in the ESC-50 pickle files.
     """
-
     def __init__(
             self,
             clip_id: str = "clip_id",
@@ -302,7 +297,6 @@ class OREXLabels:
     """
     A class containing the keys used in the OSIRIS-REx NPZ file.
     """
-
     def __init__(
             self,
             station_id: str = "station_ids",
@@ -370,13 +364,13 @@ class OREXLabels:
             self.station_alt: standard_labels.station_alt}
 
 
-def standardize_df_columns(dataset: pd.DataFrame, label_map: dict):
+def standardize_df_columns(dataset: pd.DataFrame, label_map: dict) -> pd.DataFrame:
     """
     Standardize the columns of a pandas DataFrame using a label mapping dictionary.
 
     :param dataset: pandas DataFrame of dataset with original column names
     :param label_map: dictionary mapping original column names to standard column names
-    :return: pandas DataFrame with standardized column names, List of missing standard columns
+    :return: pandas DataFrame with standardized column names
     """
     for col in dataset.columns:
         if col in label_map.keys():
