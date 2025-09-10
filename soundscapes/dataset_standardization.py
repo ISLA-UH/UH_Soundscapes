@@ -22,7 +22,7 @@ AL = stl.ASTRALabels()
 EL = stl.ESC50Labels()
 OL = stl.OREXLabels()
 
-DIRECTORY_PATH: str = "/Users/spopen/redvox/data/rockets_data/datasets_pkl"
+DIRECTORY_PATH: str = "/Users/tyler/Downloads/soundscapes_data/"
 
 ASTRA_FILENAME: str = "ASTRA.pkl"
 ASTRA_STANDARDIZED_FILENAME: str = "ASTRA_standardized.pkl"
@@ -76,6 +76,10 @@ def summarize_dataset(df: pd.DataFrame) -> None:
 def select_astra_rocket_samples(astra_df: pd.DataFrame, al: stl.ASTRALabels = AL) -> pd.DataFrame:
     """
     Select ASTRA rocket samples using the labels given.
+
+    :param astra_df: pandas DataFrame containing the raw ASTRA data
+    :param al: ASTRALabels object containing the column labels for the ASTRA dataset
+    :return: pandas DataFrame containing the selected ASTRA rocket samples
     """
     rocket_samples, t0s = [], []
     sample_dur = 5.
@@ -96,7 +100,14 @@ def select_astra_rocket_samples(astra_df: pd.DataFrame, al: stl.ASTRALabels = AL
     return astra_df
 
 
-def select_astra_noise_samples(astra_df, al=AL) -> pd.DataFrame:
+def select_astra_noise_samples(astra_df: pd.DataFrame, al: stl.ASTRALabels = AL) -> pd.DataFrame:
+    """
+    selects ASTRA noise samples using the labels given.
+
+    :param astra_df: pandas DataFrame containing the raw ASTRA data
+    :param al: ASTRALabels object containing the column labels for the ASTRA dataset
+    :return: pandas DataFrame containing the selected ASTRA noise samples
+    """
     noise_samples, t0s = [], []
     min_sample_dur = 0.96
     max_sample_dur = 5. * 10
@@ -125,7 +136,13 @@ def select_astra_noise_samples(astra_df, al=AL) -> pd.DataFrame:
     return astra_df
 
 
-def get_astra_samples(raw_astra_df) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def get_astra_samples(raw_astra_df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Get ASTRA samples for rocket and noise
+
+    :param raw_astra_df: pandas DataFrame containing the raw ASTRA data
+    :return: tuple of pandas DataFrames containing the rocket and noise samples
+    """
     # add and fill station altitude, data source, and station network columns
     raw_astra_df[STL.station_alt] = [0.0] * len(raw_astra_df)  # ASTRA stations are all surface stations
     raw_astra_df[STL.data_source] = ["ASTRA"] * len(raw_astra_df)  # all data is from the ASTRA dataset
@@ -164,9 +181,10 @@ def get_astra_samples(raw_astra_df) -> Tuple[pd.DataFrame, pd.DataFrame]:
     return rocket_astra_df, noise_astra_df
 
 
-def compile_metadata(df, index_column, metadata_columns) -> pd.DataFrame:
+def compile_metadata(df: pd.DataFrame, index_column: str, metadata_columns: list) -> pd.DataFrame:
     """
     Compile metadata for a dataset.
+
     :param df: DataFrame containing the dataset
     :param index_column: column name to use as the index for the metadata
     :param metadata_columns: list of column names to include in the metadata
@@ -187,9 +205,10 @@ def compile_metadata(df, index_column, metadata_columns) -> pd.DataFrame:
 
 def standardize_astra(astra_df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
-    Master function to standardize the ASTRA dataset
+    Standardize the ASTRA dataset
+
     :param: astra_df: DataFrame containing the raw ASTRA data
-    :return: pandas DataFrames containing the standardized data and metadata
+    :return: pandas DataFrames containing the standardized data, event and station metadata
     """
     # compile ASTRA event metadata
     astra_event_metadata = compile_metadata(
@@ -213,9 +232,10 @@ def standardize_astra(astra_df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFram
 
 def standardize_shared(shared_df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
-    Master function to standardize the SHAReD dataset
+    Standardize the SHAReD dataset
+
     :param: shared_df: DataFrame containing the raw SHAReD data
-    :return: pandas DataFrames containing the standardized data and metadata
+    :return: pandas DataFrames containing the standardized data, event and station metadata
     """
     # change NNSS event names from "NNSS" to "NNSS_<event_id_number>" to make them unique
     for idx in shared_df.index:
@@ -286,18 +306,20 @@ def standardize_shared(shared_df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFr
     return shared_standardized_df, shared_event_metadata, shared_station_metadata
 
 
-def get_station_model(station_label_string) -> str:
+def get_station_model(station_label_string: str) -> str:
     """
-    Function to extract the station model from the OREX station label string
+    Extract the station model from the OREX station label string
+
     :param station_label_string:
     :return: a string containing the station model
     """
     return station_label_string.split(" ")[-1].split("-")[0]
 
 
-def get_station_network(station_label_string) -> str:
+def get_station_network(station_label_string: str) -> str:
     """
-    Function to extract the station network from the OREX station label string
+    Extract the station network from the OREX station label string
+
     :param station_label_string:
     :return: a string containing the station network
     """
@@ -309,7 +331,8 @@ def extract_orex_station_locs_pkl(
     full_orex_pkl_path: str = os.path.join(DIRECTORY_PATH, OREX_FULL_FILENAME)
 ) -> Dict[str, Dict[str, float]]:
     """
-    Function to extract the best station locations from the full OREX PKL file
+    Extract the best station locations from the full OREX PKL file
+
     :param station_label_map: dictionary mapping Redvox station IDs to station labels
     :param full_orex_pkl_path: full path of the OREX PKL file containing station location data
     :return: dictionary of station locations (lat, lon, alt) with station labels as keys
@@ -337,7 +360,8 @@ def extract_orex_station_locs_pkl(
 
 def merge_coord(a: float, b: float) -> float:
     """
-    Function to merge two coordinate values, returning their mean if they are within 10% of each other, otherwise NaN.
+    Merge two coordinate values, returning their mean if they are within 10% of each other, otherwise NaN.
+
     :param a: first coordinate value
     :param b: second coordinate value
     :return: merged coordinate value
@@ -366,8 +390,8 @@ def merge_orex_station_locs(
     orex_full_pkl_path: str = os.path.join(DIRECTORY_PATH, OREX_FULL_FILENAME)
 ) -> Dict[str, Dict[str, float]]:
     """
-    Function to compare the station location data extracted from OREX PKL and KML files and select the best available
-    data
+    Compare the station location data extracted from OREX PKL and KML files and return the best available data
+
     :param orex_full_pkl_path: path to PKL file containing OREX station location data
     :param orex_kml_path: path to KML file containing OREX station location data
     :param station_label_map: dictionary mapping Redvox station IDs to OREX station labels
@@ -399,24 +423,21 @@ def merge_orex_station_locs(
     return merged_locs
 
 
-def check_if_station(place_name: str):
+def check_if_station(place_name: str) -> bool:
     """
-    Function to check if a placemark's name matches the format of an OREX station name
     :param place_name: the name of the placemark
     :return: True if the placemark's name could correspond to a recording station, False otherwise
     """
     place_name_split = place_name.split(" ")
-    if len(place_name_split) != 2:
+    if len(place_name_split) != 2 or place_name_split[0] not in ["CLIVE", "EUREK", "ALOFT", "WEND", "WARR"]:
         return False
-    elif place_name_split[0] not in ["CLIVE", "EUREK", "ALOFT", "WEND", "WARR"]:
-        return False
-    else:
-        return True
+    return True
 
 
 def extract_orex_station_locs_kml(kml_file: str) -> Dict[str, Dict[str, float]]:
     """
     Load locations of OSIRIS-REx recording stations from a KML file
+
     :param kml_file: full path of the file to load data from
     :return: dictionary of locations with identifiers
     """
@@ -424,11 +445,7 @@ def extract_orex_station_locs_kml(kml_file: str) -> Dict[str, Dict[str, float]]:
     locations: list[Placemark] = list(find_all(kml_data, of_type=Placemark))
     locations_dict = {}
     for place in locations:
-        if place.geometry is None:
-            continue
-        elif type(place.geometry) is not pyPoint:
-            continue
-        if not check_if_station(place.name):
+        if place.geometry is None or type(place.geometry) is not pyPoint or check_if_station(place.name):
             continue
         locations_dict[place.name] = {"lon": place.geometry.x, "lat": place.geometry.y, "alt": place.geometry.z}
     return locations_dict
@@ -436,7 +453,6 @@ def extract_orex_station_locs_kml(kml_file: str) -> Dict[str, Dict[str, float]]:
 
 def load_orex_npz(orex_npz_path: str = os.path.join(DIRECTORY_PATH, OREX_NPZ_FILENAME)) -> pd.DataFrame:
     """
-    Load the OREX dataset from an NPZ file
     :param orex_npz_path: string of full path to NPZ file containing OREX data from the best stations
     :return: pandas DataFrame containing the OREX data
     """
@@ -452,36 +468,37 @@ def load_orex_npz(orex_npz_path: str = os.path.join(DIRECTORY_PATH, OREX_NPZ_FIL
 
 
 def load_orex_ds(
-    orex_pkl_path: str = os.path.join(DIRECTORY_PATH, OREX_PKL_FILENAME),
-    orex_npz_path: str = os.path.join(DIRECTORY_PATH, OREX_NPZ_FILENAME),
-    load_method: str = "pkl"
+    load_method: str = "pkl",
+    orex_path: str = os.path.join(DIRECTORY_PATH, OREX_PKL_FILENAME)
 ) -> pd.DataFrame:
     """
-    Load the OREX dataset
-    :param orex_pkl_path: string of full path to PKL file containing OREX data from the best stations
-    :param orex_npz_path: string of full path to NPZ file containing OREX data from the best stations
-    :param load_method: string ('pkl' or 'npz') indicating which file format to load the OREX data from
+    Loads OREX data from either a pkl or npz file.  Defaults to pkl.
+
+    :param load_method: "pkl" or "npz" indicating which file format to load the OREX data from.  Default "pkl".
+    :param orex_path: full path to file containing OREX data from the best stations.  Default pkl file path.
     :return: pandas DataFrame containing the OREX data
     """
+    pkl_path = os.path.join(DIRECTORY_PATH, OREX_PKL_FILENAME)
+    npz_path = os.path.join(DIRECTORY_PATH, OREX_NPZ_FILENAME)
     if load_method == "pkl":
-        if os.path.isfile(orex_pkl_path):
-            orex_df = pd.read_pickle(orex_pkl_path)
+        if os.path.isfile(orex_path):
+            orex_df = pd.read_pickle(orex_path)
         else:
             print("PKL file not found. Attempting to load from NPZ file instead.")
-            orex_df = load_orex_npz(orex_npz_path)
+            orex_df = load_orex_npz(npz_path)
     elif load_method == "npz":
-        if os.path.isfile(orex_npz_path):
-            orex_df = load_orex_npz(orex_npz_path)
+        if os.path.isfile(orex_path):
+            orex_df = load_orex_npz(orex_path)
         else:
             print("NPZ file not found. Attempting to load from PKL file instead.")
-            orex_df = pd.read_pickle(orex_pkl_path)
+            orex_df = pd.read_pickle(pkl_path)
     else:
         print("Invalid load_method parameter. Must be 'pkl' or 'npz'. Attempting to load from PKL file instead.")
         try:
-            orex_df = pd.read_pickle(orex_pkl_path)
+            orex_df = pd.read_pickle(pkl_path)
         except FileNotFoundError:
             print("PKL file not found. Attempting to load from NPZ file instead.")
-            orex_df = load_orex_npz(orex_npz_path)
+            orex_df = load_orex_npz(npz_path)
     return orex_df
 
 
@@ -493,6 +510,7 @@ def add_orex_location_data(
 ) -> pd.DataFrame:
     """
     Add location data to the OREX DataFrame
+
     :param orex_df: pandas DataFrame containing the OREX data
     :param location_source: string ("pkl", "kml", or "merged") indicating which source of location data to use
     :param orex_kml_path: path to KML file containing OSIRIS-REx station location data
@@ -526,13 +544,13 @@ def add_orex_location_data(
                 print(f"No file found at {orex_kml_path}")
                 station_locations = extract_orex_station_locs_pkl(orex_station_label_map, orex_full_pkl_path)
 
-                # add station locations to the DataFrame
+    # add station locations to the DataFrame
     lat, lon, alt = [], [], []
     for station in orex_df.index:
         station_label = orex_df[OL.station_label][station]
-        lat.append(station_locations[station_label]['lat'])
-        lon.append(station_locations[station_label]['lon'])
-        alt.append(station_locations[station_label]['alt'])
+        lat.append(station_locations[station_label]["lat"])
+        lon.append(station_locations[station_label]["lon"])
+        alt.append(station_locations[station_label]["alt"])
     orex_df[OL.station_lat] = lat
     orex_df[OL.station_lon] = lon
     orex_df[OL.station_alt] = alt
@@ -547,6 +565,7 @@ def standardize_orex(
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
     Master function to standardize the OREX hypersonic dataset
+
     :param orex_df: pandas DataFrame containing the OREX data
     :param orex_audio_fs_hz: the sample rate of the OREX audio data in Hz
     :param orex_event_id: the event ID string to assign to all OREX signals
@@ -596,6 +615,7 @@ def standardize_orex(
 def standardize_esc50(esc50_df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
     Master function to standardize the ESC-50 environmental sound dataset
+
     :param esc50_df: pandas DataFrame containing the ESC-50 data
     :return: pandas DataFrames containing the standardized dataset and the ESC-50 metadata
     """
@@ -623,7 +643,7 @@ def standardize_esc50(esc50_df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFram
     return esc50_df, esc50_event_metadata
 
 
-def main():
+def standardize_datasets():
     datasets_to_merge = []
 
     if INCLUDE_ASTRA:
@@ -662,9 +682,7 @@ def main():
 
     if INCLUDE_OREX:
         # load OSIRIS-REx dataset
-        orex_df = load_orex_ds(orex_pkl_path=os.path.join(DIRECTORY_PATH, OREX_PKL_FILENAME),
-                               orex_npz_path=os.path.join(DIRECTORY_PATH, OREX_NPZ_FILENAME),
-                               load_method="npz")
+        orex_df = load_orex_ds(orex_path=os.path.join(DIRECTORY_PATH, OREX_NPZ_FILENAME), load_method="npz")
         # add station location data if missing
         if OL.station_lat not in orex_df.columns:
             orex_df = add_orex_location_data(orex_df,
@@ -714,4 +732,4 @@ def main():
 
 if __name__ == "__main__":
     pd.options.mode.copy_on_write = True
-    main()
+    standardize_datasets()

@@ -20,8 +20,6 @@ References
 TODO:
 Update OREX Pickle
 Update data_standardization header/description in repo
-Migrate to main: dataset_standardization and standard_labels
-update .kml dependencies
 push to pypi
 Construct list of files expected in HIGP in ReadMe
 Provide best available trajectory (at a later time)
