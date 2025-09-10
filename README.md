@@ -16,3 +16,12 @@ References
 9.	KC, R. J; Wilson, T; Fox, D; Spillman K.; Garcés M.A.; Elbing B. R. Acoustic Observations of the OSIRIS-REx Sample Return Capsule Re-Entry from Wendover Airport. Seism. Res. Lett. 2025 XX, 1–14; https://doi.org/10.1785/0220250019.
 10.	UH_Soundscapes, this repository
 11.	UH_Soundscapes, aggregated data at https://www.higp.hawaii.edu/archive/isla/UH_Soundscapes/
+
+TODO:
+Update OREX Pickle
+Update data_standardization header/description in repo
+Migrate to main: dataset_standardization and standard_labels
+update .kml dependencies
+push to pypi
+Construct list of files expected in HIGP in ReadMe
+Provide best available trajectory (at a later time)
