@@ -3,7 +3,7 @@ audio event pipeline
 
 Open-access infrasonic-adjacent soundscapes
 
-Annotated openly-available low-frequency audio libraries of rocket [1], explosion [2], and hypersonic [3] signatures are provided. We use a decimated version of the Environmental Sound Classification dataset [4] to provide a validated noise vocabulary. Although the data sources vary, a majority are from smartphone and publicly available recordings. The event types are described in open-access published papers [4-9], and a Python open-source repository was developed for accessing, standardizing, and processing the curated data and metadata [10]. This work was funded by the Department of Energy National Nuclear Security Administration under Awards DE-NA0003920 (MTV) and DE-NA0003921 (ETI).
+Annotated openly-available low-frequency audio libraries of rocket [1], explosion [2], and hypersonic [3] signatures are provided. We use a decimated version of the Environmental Sound Classification dataset [4] to provide a validated noise vocabulary. Although the data sources vary, a majority are from smartphone and publicly available recordings. The event types are described in open-access published papers [4-9], and a Python open-source repository was developed for accessing, standardizing, and processing the curated data and metadata [10-11]. This work was funded by the Department of Energy National Nuclear Security Administration under Awards DE-NA0003920 (MTV) and DE-NA0003921 (ETI).
 
 References
 1.	Popenhagen, S.K. (2025).  Aggregated Smartphone Timeseries of Rocket-Generated Acoustics (ASTRA). https://doi.org/10.7910/DVN/ZKIS2K (accessed on 21 August 2025).
@@ -16,3 +16,4 @@ References
 8.	Takazawa, S.K.; Popenhagen, S.K.; Ocampo Giraldo, L.A.; Cárdenas, E.S.; Hix, J.D.; Thompson, S.J.; Chichester, D.L.; Garcés, M.A. A comparison of smartphone and infrasound microphone data from a fuel air explosive and a high explosive. J. Acoust. Soc. Am. 2024, 156, 1509-1523; https://doi.org/10.1121/10.0028379.
 9.	KC, R. J; Wilson, T; Fox, D; Spillman K.; Garcés M.A.; Elbing B. R. Acoustic Observations of the OSIRIS-REx Sample Return Capsule Re-Entry from Wendover Airport. Seism. Res. Lett. 2025 XX, 1–14; https://doi.org/10.1785/0220250019.
 10.	UH_Soundscapes, this repository
+11.	UH_Soundscapes, aggregated data at https://www.higp.hawaii.edu/archive/isla/UH_Soundscapes/
