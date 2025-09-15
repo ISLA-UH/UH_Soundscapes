@@ -33,6 +33,7 @@ class StandardLabels:
     ):
         """
         Defaults should be left in place for most uses.
+
         :param station_id: unique identifying string of the recording station, when applicable
         :param station_network: network smartphone was deployed on, when applicable
         :param station_latitude: latitude of the recording station in degrees, when applicable
@@ -111,6 +112,7 @@ class ASTRALabels:
     ):
         """
         Defaults should be left in place for most uses.
+
         :param station_id: column containing the recording smartphones' unique station ID numbers
         :param station_make: column containing the recording smartphones' makes
         :param station_model: column containing the recording smartphones' models
@@ -183,6 +185,10 @@ class SHAReDLabels:
     A class containing the column names used in the SHAReD dataset.
     """
     def __init__(self):
+        """
+        Defaults should be left in place for most uses.
+        
+        """
         self.event_name: str = "event_name"
         self.source_yield_kg: str = "source_yield_kg"
         self.smartphone_id: str = "smartphone_id"
@@ -264,6 +270,7 @@ class ESC50Labels:
     ):
         """
         Defaults should be left in place for compatibility with the ESC-50 pickle files.
+
         :param clip_id: the ID string of the Freesound clip the audio was taken from, e.g. "freesound123456"
         :param audio_data: a numpy array containing the raw audio waveform amplitudes
         :param audio_fs: the sampling frequency of the audio waveform in Hz, e.g. 800 or 16000
@@ -315,6 +322,7 @@ class OREXLabels:
     ):
         """
         Defaults should be left in place for most uses.
+        
         :param station_id: key associated with the unique ID string of the station used to record the signal
         :param station_label: key associated with the descriptive label string of the station
         :param station_make: key associated with the recording smartphone's make

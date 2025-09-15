@@ -4,6 +4,52 @@ Open-access infrasound-adjacent soundscapes
 
 Annotated openly-available low-frequency audio libraries of rocket [1], explosion [2], and hypersonic [3] signatures are provided. We use a decimated version of the Environmental Sound Classification dataset [4] to provide a validated noise vocabulary. Although the data sources vary, a majority are from smartphone and publicly available recordings. The event types are described in open-access published papers [4-9], and a Python open-source repository was developed for accessing, standardizing, and processing the curated data and metadata [10-11]. This work was funded by the Department of Energy National Nuclear Security Administration under Awards DE-NA0003920 (MTV) and DE-NA0003921 (ETI).
 
+Expected files in HIGP data repository [11]:
+- ASTRA.pkl
+- SHAReD.pkl
+- esc50_df_800Hz.pkl
+- orex_best_mics_800hz_1024pt.pkl
+
+Overview of essential data fields included in the datasets:
+<table>
+  <tr>
+    <th></th>
+    <th>Signal source</th>
+<th>Signal duration</th>
+    <th>Source locations included</th>
+    <th>Station locations included</th>
+  </tr>
+  <tr>
+    <th>ASTRA.pkl</th>
+    <td>Rocket launches</td>
+    <td>Various (5-10 minutes)</td>
+    <td>All</td>
+    <td>All</td>
+  </tr>
+  <tr>
+    <th>SHAReD.pkl</th>
+    <td>Explosions and ambient</td>
+    <td>0.96 seconds</td>
+    <td>Some</td>
+    <td>Some</td>
+  </tr>
+<tr>
+    <th>esc50_df_800Hz.pkl</th>
+    <td>Various environmental sources</td>
+    <td>5 seconds</td>
+    <td>None</td>
+    <td>None</td>
+  </tr>
+<tr>
+    <th>orex_best_mics_800hz_1024pt.pkl</th>
+    <td>Hypersonic atmospheric reentry</td>
+    <td>1.28 seconds</td>
+    <td>None*</td>
+    <td>All</td>
+  </tr>
+</table>
+*Source locations are not known, but can be estimated from OSIRIS-REx trajectory data.
+
 References
 1.	Popenhagen, S.K. (2025).  Aggregated Smartphone Timeseries of Rocket-Generated Acoustics (ASTRA). https://doi.org/10.7910/DVN/ZKIS2K (accessed on 21 August 2025).
 2.	Takazawa, S.K. (2024) Smartphone High-Explosive Audio Recordings Dataset (SHAReD). Available online: https://doi.org/10.7910/DVN/ROWODP (accessed on 21 August 2025).
@@ -17,9 +63,8 @@ References
 10.	UH_Soundscapes, this repository
 11.	UH_Soundscapes, aggregated data at https://www.higp.hawaii.edu/archive/isla/UH_Soundscapes/
 
+
 TODO:
-Update OREX Pickle
-Update data_standardization header/description in repo
-push to pypi
-Construct list of files expected in HIGP in ReadMe
-Provide best available trajectory (at a later time)
+- Swap OREX NPZ for orex_best_mics_800hz_1024pt.pkl (in Google Drive) in HIGP data repository
+- push to pypi
+- Provide best available trajectory (at a later time)
