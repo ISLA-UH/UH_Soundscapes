@@ -1,8 +1,8 @@
 """
-Ideas for standardizing datasets for machine learning applications. As of 08/13/2025, the included datasets are:
-Aggregated Smartphone Timeseries of Rocket-generated Acoustics (ASTRA), Smartphone High-explosive Audio Recordings
-Dataset (SHAReD), OSIRIS-REx UH ISLA hypersonic signals (OREX), and the environmental sound classification dataset
-(ESC-50).
+Script to standardize and/or merge acoustic datasets for machine learning applications. As of 09/15/2025, the included
+datasets are: Aggregated Smartphone Timeseries of Rocket-generated Acoustics (ASTRA), Smartphone High-explosive Audio
+Recordings Dataset (SHAReD), OSIRIS-REx UH ISLA hypersonic signals (OREX), and the environmental sound classification
+dataset (ESC-50).
 """
 import numpy as np
 import os
@@ -22,38 +22,40 @@ AL = stl.ASTRALabels()
 EL = stl.ESC50Labels()
 OL = stl.OREXLabels()
 
+# path to the directory where the original dataset files are stored
 DIRECTORY_PATH: str = "/Users/spopen/redvox/data/rockets_data/datasets_pkl"
 
-ASTRA_FILENAME: str = "ASTRA.pkl"
-ASTRA_STANDARDIZED_FILENAME: str = "ASTRA_standardized.pkl"
-ASTRA_EVENT_MD_FILENAME: str = "ASTRA_event_metadata.csv"
-ASTRA_STATION_MD_FILENAME: str = "ASTRA_station_metadata.csv"
+ASTRA_FILENAME: str = "ASTRA.pkl"  # name of the original ASTRA pickle file
+ASTRA_STANDARDIZED_FILENAME: str = "ASTRA_standardized.pkl"  # name of the standardized ASTRA pickle file
+ASTRA_EVENT_MD_FILENAME: str = "ASTRA_event_metadata.csv"  # name of the ASTRA event metadata CSV file
+ASTRA_STATION_MD_FILENAME: str = "ASTRA_station_metadata.csv"  # name of the ASTRA station metadata CSV file
 
-SHARED_FILENAME: str = "SHAReD.pkl"
-SHARED_STANDARDIZED_FILENAME: str = "SHAReD_standardized.pkl"
-SHARED_EVENT_MD_FILENAME: str = "SHAReD_event_metadata.csv"
-SHARED_STATION_MD_FILENAME: str = "SHAReD_station_metadata.csv"
+SHARED_FILENAME: str = "SHAReD.pkl"  # name of the original SHAReD pickle file
+SHARED_STANDARDIZED_FILENAME: str = "SHAReD_standardized.pkl"  # name of the standardized SHAReD pickle file
+SHARED_EVENT_MD_FILENAME: str = "SHAReD_event_metadata.csv"  # name of the SHAReD event metadata CSV file
+SHARED_STATION_MD_FILENAME: str = "SHAReD_station_metadata.csv"  # name of the SHAReD station metadata CSV file
 
-ESC50_FILENAME: str = "esc50_df_800Hz.pkl"
-ESC50_STANDARDIZED_FILENAME: str = "ESC50_800Hz_standardized.pkl"
-ESC50_EVENT_MD_FILENAME: str = "ESC50_event_metadata.csv"
+ESC50_FILENAME: str = "esc50_df_800Hz.pkl"  # name of the original ESC-50 pickle file (800 Hz version)
+ESC50_STANDARDIZED_FILENAME: str = "ESC50_800Hz_standardized.pkl"  # name of the standardized ESC-50 pickle file
+ESC50_EVENT_MD_FILENAME: str = "ESC50_event_metadata.csv"  # name of the ESC-50 event metadata CSV file
 
-OREX_NPZ_FILENAME: str = "orex_best_mics_800hz_1024pt.npz"
-OREX_PKL_FILENAME: str = "orex_best_mics_800hz_1024pt.pkl"
-OREX_STANDARDIZED_FILENAME: str = "OREX_standardized.pkl"
-OREX_EVENT_MD_FILENAME: str = "OREX_event_metadata.csv"
-OREX_STATION_MD_FILENAME: str = "OREX_station_metadata.csv"
-OREX_FULL_FILENAME: str = "all_stations_3min_dataframe.pkl"
-OREX_KML_FILENAME: str = "orex_redvox_best_stations_v03.kml"
+OREX_NPZ_FILENAME: str = "orex_best_mics_800hz_1024pt.npz"  # name of the original OREX NPZ file
+OREX_PKL_FILENAME: str = "orex_best_mics_800hz_1024pt.pkl"  # name of the original OREX PKL file
+OREX_STANDARDIZED_FILENAME: str = "OREX_standardized.pkl"  # name of the standardized OREX pickle file
+OREX_STATION_MD_FILENAME: str = "OREX_station_metadata.csv"  # name of the OREX station metadata CSV file
+OREX_KML_FILENAME: str = "orex_redvox_best_stations_v03.kml"  # name of the OREX KML file
 
-MERGED_DS_FILENAME: str = "merged_standardized_dataset.pkl"
+MERGED_DS_FILENAME: str = "merged_standardized_dataset.pkl"  # name of the merged standardized dataset pickle file
 
-INCLUDE_ASTRA: bool = True
-INCLUDE_SHAReD: bool = True
-INCLUDE_OREX: bool = True
-INCLUDE_ESC50: bool = True
-SAVE_METADATA: bool = True
-MERGE_DATASETS: bool = True
+STANDARDIZE_DATASETS: bool = True  # toggle dataset standardization
+INCLUDE_ASTRA: bool = True  # include ASTRA data in the merged dataset
+INCLUDE_SHAReD: bool = True  # include SHAReD data in the merged dataset
+INCLUDE_OREX: bool = True  # include OREX data in the merged dataset
+INCLUDE_ESC50: bool = True  # include ESC50 data in the merged dataset
+SAVE_METADATA: bool = True  # toggle export of metadata files
+MERGE_DATASETS: bool = True  # toggle dataset merging
+
+UNKN_SURF_ALT: float = -9999.9  # float value to represent an unknown surface altitude
 
 
 def summarize_dataset(df: pd.DataFrame) -> None:
@@ -73,61 +75,75 @@ def summarize_dataset(df: pd.DataFrame) -> None:
         print(f"\t\t{count} signals labeled as '{label}'")
 
 
-def select_astra_rocket_samples(astra_df: pd.DataFrame, al: stl.ASTRALabels = AL) -> pd.DataFrame:
+def select_astra_rocket_samples(astra_df: pd.DataFrame) -> pd.DataFrame:
     """
-    Select ASTRA rocket samples using the labels given.
+    Select ASTRA rocket samples from the full waveforms. Each sample is 5 seconds long and centered on the estimated
+    peak arrival.
+    :param astra_df: pandas DataFrame containing the full ASTRA waveforms
+    :return: pandas DataFrame containing the ASTRA dataset with the waveforms trimmed to the selected samples
     """
-    rocket_samples, t0s = [], []
-    sample_dur = 5.
+    rocket_samples, t0s = [], []  # lists to hold the selected samples and their new t0 values
+    sample_dur = 5.  # duration of the sample in seconds
     for station in astra_df.index:
-        t0 = astra_df[al.first_sample_epoch_s][station]
-        peak_time = astra_df[al.p_aligned_toa_est][station]
-        fs = astra_df[al.audio_fs][station]
-        n_points_per_sample = int(sample_dur * fs)
-        pa_toa_idx = int((peak_time - t0) * fs)
-        first_sample_idx = int(pa_toa_idx - n_points_per_sample / 2)
-        audio_data = astra_df[al.audio_data][station]
-        audio_data = np.nan_to_num(audio_data)
-        sample = audio_data[first_sample_idx:first_sample_idx + n_points_per_sample]
-        rocket_samples.append(sample)
-        t0s.append(t0 + first_sample_idx / fs)  # t0 is the epoch second of the first sample
-    astra_df[al.audio_data] = rocket_samples
-    astra_df[al.first_sample_epoch_s] = t0s
+        t0 = astra_df[AL.first_sample_epoch_s][station]  # original t0 of the recording
+        peak_time = astra_df[AL.p_aligned_toa_est][station]  # peak arrival time of the recording
+        fs = astra_df[AL.audio_fs][station]  # sample rate of the recording in Hz
+        n_points_per_sample = int(sample_dur * fs)  # number of points in the sample
+        pa_toa_idx = int((peak_time - t0) * fs)  # index of the peak arrival time in the full waveform
+        first_sample_idx = int(pa_toa_idx - n_points_per_sample / 2)  # first index of the sample
+        audio_data = astra_df[AL.audio_data][station]  # the full waveform
+        audio_data = np.nan_to_num(audio_data)  # the full waveform, with NaN values filled with zeros
+        sample = audio_data[first_sample_idx:first_sample_idx + n_points_per_sample]  # the selected sample
+        rocket_samples.append(sample)  # append the sample
+        t0s.append(t0 + first_sample_idx / fs)  # append the new t0 (epoch second of the first point in the sample)
+    astra_df[AL.audio_data] = rocket_samples  # replace the full waveforms with the selected samples
+    astra_df[AL.first_sample_epoch_s] = t0s  # replace the original t0 values with the new t0 values
     return astra_df
 
 
-def select_astra_noise_samples(astra_df, al=AL) -> pd.DataFrame:
-    noise_samples, t0s = [], []
-    min_sample_dur = 0.96
-    max_sample_dur = 5. * 10
-    buffer_s = 60.
+def select_astra_noise_samples(astra_df) -> pd.DataFrame:
+    """
+    Select ASTRA noise samples from the full waveforms. Each sample is 0.96-50.0 seconds long, ending at least 60
+    seconds before the first possible arrival of the rocket launch signal at the station.
+    :param astra_df: pandas DataFrame containing the full ASTRA waveforms
+    :return: pandas DataFrame containing the ASTRA dataset with the waveforms trimmed to the selected samples
+    """
+    noise_samples, t0s = [], []  # lists to hold the selected samples and their new t0 values
+    min_sample_dur = 0.96  # minimum sample duration in seconds
+    max_sample_dur = 5. * 10  # maximum sample duration in seconds
+    buffer_s = 60.  # minimum time in seconds between the end of the sample and the first possible signal arrival time
     for station in astra_df.index:
-        t0 = astra_df[al.first_sample_epoch_s][station]
-        fs = astra_df[al.audio_fs][station]
-        n_points_per_sample_min = int(min_sample_dur * fs)
-        n_points_per_sample_max = int(max_sample_dur * fs)
-        sa_toa_idx = int((astra_df[al.s_aligned_toa_est][station] - t0) * fs)
+        t0 = astra_df[AL.first_sample_epoch_s][station]  # original t0 of the recording
+        fs = astra_df[AL.audio_fs][station]  # sample rate of the recording in Hz
+        n_points_per_sample_min = int(min_sample_dur * fs)  # minimum number of points in the sample
+        n_points_per_sample_max = int(max_sample_dur * fs)  # maximum number of points in the sample
+        sa_toa_idx = int((astra_df[AL.s_aligned_toa_est][station] - t0) * fs)  # idx of the first possible arrival time
         buffer_points = int(buffer_s * fs)  # 60 second buffer
-        audio_data = astra_df[al.audio_data][station]
-        audio_data = np.nan_to_num(audio_data)
-        first_non_zero_idx = np.argwhere(audio_data != 0).flatten()[0]
-        last_viable_noise_idx = sa_toa_idx - buffer_points
-        n_viable_points = last_viable_noise_idx - first_non_zero_idx
+        audio_data = astra_df[AL.audio_data][station]  # full waveform
+        audio_data = np.nan_to_num(audio_data)  # full waveform, with NaNs filled with zeros
+        first_non_zero_idx = np.argwhere(audio_data != 0).flatten()[0]  # idx of the first real point
+        last_viable_noise_idx = sa_toa_idx - buffer_points  # idx of the last point that can be included
+        n_viable_points = last_viable_noise_idx - first_non_zero_idx  # total number of viable 'noise' points
         if n_viable_points >= n_points_per_sample_min:
             last_noise_idx = min(last_viable_noise_idx, first_non_zero_idx + n_points_per_sample_max)
-            noise_sample = audio_data[first_non_zero_idx: last_noise_idx]
+            noise_sample = audio_data[first_non_zero_idx: last_noise_idx]  # select the noise sample
         else:
             noise_sample = np.array([])  # empty array if not enough viable data for at least 0.96 s sample
-        noise_samples.append(noise_sample)
-        t0s.append(t0 + first_non_zero_idx / fs)  # t0 is the epoch second of the first sample
-    astra_df[al.audio_data] = noise_samples
-    astra_df[al.first_sample_epoch_s] = t0s
+        noise_samples.append(noise_sample)  # append the selected noise sample
+        t0s.append(t0 + first_non_zero_idx / fs)  # append the new t0 (epoch second of the first point in the sample)
+    astra_df[AL.audio_data] = noise_samples  # replace the full waveforms with the selected samples
+    astra_df[AL.first_sample_epoch_s] = t0s  # replace the original t0 values with the new t0 values
     return astra_df
 
 
 def get_astra_samples(raw_astra_df) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Split a raw ASTRA DataFrame into 2 DataFrames with the rocket and noise data samples, respectively.
+    :param raw_astra_df: pandas DataFrame containing raw ASTRA data
+    :return: two pandas DataFrames containing the rocket and noise samples from ASTRA, respectively
+    """
     # add and fill station altitude, data source, and station network columns
-    raw_astra_df[STL.station_alt] = [0.0] * len(raw_astra_df)  # ASTRA stations are all surface stations
+    raw_astra_df[STL.station_alt] = [UNKN_SURF_ALT] * len(raw_astra_df)  # ASTRA stations are all surface stations
     raw_astra_df[STL.data_source] = ["ASTRA"] * len(raw_astra_df)  # all data is from the ASTRA dataset
     raw_astra_df[STL.station_network] = ["FLORIDA"] * len(raw_astra_df)  # all data was recorded on the Florida network
     # make a copy of the raw dataframe to select rocket samples from
@@ -135,7 +151,7 @@ def get_astra_samples(raw_astra_df) -> Tuple[pd.DataFrame, pd.DataFrame]:
     # select 5 second rocket samples centered on the peak aligned time of arrival
     rocket_astra_df = select_astra_rocket_samples(rocket_astra_df)
     # add source altitude and ML label columns
-    rocket_astra_df[STL.source_alt] = 0.0  # ASTRA sources are all on the surface
+    rocket_astra_df[STL.source_alt] = UNKN_SURF_ALT  # ASTRA sources are all on the surface
     rocket_astra_df[STL.ml_label] = ["rocket"] * len(rocket_astra_df)  # suggested label for ML applications
     # rename columns to standard labels
     rocket_astra_df = stl.standardize_df_columns(dataset=rocket_astra_df, label_map=AL.standardize_dict)
@@ -251,10 +267,10 @@ def standardize_shared(shared_df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFr
     explosion_df[STL.data_source] = ["SHAReD"] * len(explosion_df)
     ambient_df[STL.data_source] = ["SHAReD"] * len(ambient_df)
     # add and fill station altitude columns
-    explosion_df[STL.station_alt] = [-9999.9] * len(explosion_df)  # SHAReD stations are all surface stations
-    ambient_df[STL.station_alt] = [-9999.9] * len(ambient_df)  # SHAReD stations are all surface stations
+    explosion_df[STL.station_alt] = [UNKN_SURF_ALT] * len(explosion_df)  # SHAReD stations are all surface stations
+    ambient_df[STL.station_alt] = [UNKN_SURF_ALT] * len(ambient_df)  # SHAReD stations are all surface stations
     # add and fill source altitude columns
-    explosion_df[STL.source_alt] = [-9999.9] * len(explosion_df)  # SHAReD sources are all on the surface
+    explosion_df[STL.source_alt] = [UNKN_SURF_ALT] * len(explosion_df)  # SHAReD sources are all on the surface
     ambient_df[STL.source_alt] = [np.nan] * len(ambient_df)  # SHAReD ambient data has no identified source
     # add and fill station network columns
     explosion_df[STL.station_network] = [x.split("_")[0] for x in explosion_df[SL.event_name]]
@@ -306,7 +322,7 @@ def get_station_network(station_label_string) -> str:
 
 def extract_orex_station_locs_pkl(
     station_label_map: Dict[str, str],
-    full_orex_pkl_path: str = os.path.join(DIRECTORY_PATH, OREX_FULL_FILENAME)
+    full_orex_pkl_path: str,
 ) -> Dict[str, Dict[str, float]]:
     """
     Function to extract the best station locations from the full OREX PKL file
@@ -362,15 +378,15 @@ def merge_coord(a: float, b: float) -> float:
 
 def merge_orex_station_locs(
     station_label_map: Dict[str, str],
+    orex_full_pkl_path: str,
     orex_kml_path: str = os.path.join(DIRECTORY_PATH, OREX_KML_FILENAME),
-    orex_full_pkl_path: str = os.path.join(DIRECTORY_PATH, OREX_FULL_FILENAME)
 ) -> Dict[str, Dict[str, float]]:
     """
     Function to compare the station location data extracted from OREX PKL and KML files and select the best available
     data
+    :param station_label_map: dictionary mapping Redvox station IDs to OREX station labels
     :param orex_full_pkl_path: path to PKL file containing OREX station location data
     :param orex_kml_path: path to KML file containing OREX station location data
-    :param station_label_map: dictionary mapping Redvox station IDs to OREX station labels
     :return: dictionary of OREX station locations (lat, lon, alt) with station labels as keys
     """
     # extract location data from both files
@@ -487,9 +503,9 @@ def load_orex_ds(
 
 def add_orex_location_data(
     orex_df: pd.DataFrame,
-    location_source: str = "merged",
+    location_source: str = "kml",
     orex_kml_path: str = os.path.join(DIRECTORY_PATH, OREX_KML_FILENAME),
-    orex_full_pkl_path: str = os.path.join(DIRECTORY_PATH, OREX_FULL_FILENAME)
+    orex_full_pkl_path: str = "",
 ) -> pd.DataFrame:
     """
     Add location data to the OREX DataFrame
@@ -506,13 +522,7 @@ def add_orex_location_data(
         else:
             print("Full OREX PKL file not found. Attempting to load from KML file instead.")
             station_locations = extract_orex_station_locs_kml(orex_kml_path)
-    elif location_source.lower() == "kml":
-        if os.path.isfile(orex_kml_path):
-            station_locations = extract_orex_station_locs_kml(orex_kml_path)
-        else:
-            print("OREX KML file not found. Attempting to load from full PKL file instead.")
-            station_locations = extract_orex_station_locs_pkl(orex_station_label_map, orex_full_pkl_path)
-    else:  # default to 'merged' method
+    elif location_source.lower() == "merged":
         if os.path.isfile(orex_kml_path) and os.path.isfile(orex_full_pkl_path):
             station_locations = merge_orex_station_locs(
                 orex_station_label_map,
@@ -525,8 +535,13 @@ def add_orex_location_data(
             else:
                 print(f"No file found at {orex_kml_path}")
                 station_locations = extract_orex_station_locs_pkl(orex_station_label_map, orex_full_pkl_path)
-
-                # add station locations to the DataFrame
+    else:  # default to 'kml'
+        if os.path.isfile(orex_kml_path):
+            station_locations = extract_orex_station_locs_kml(orex_kml_path)
+        else:
+            print("OREX KML file not found. Attempting to load from full PKL file instead.")
+            station_locations = extract_orex_station_locs_pkl(orex_station_label_map, orex_full_pkl_path)
+    # add station locations to the DataFrame
     lat, lon, alt = [], [], []
     for station in orex_df.index:
         station_label = orex_df[OL.station_label][station]
@@ -572,8 +587,6 @@ def standardize_orex(
     if OL.station_network not in orex_df.columns:
         orex_df[OL.station_network] = [get_station_network(sls) for sls in orex_df[OL.station_label]]
 
-    # TODO: decide how to incorporate OREX event metadata--include estimates of source locations and times
-    #  calculated for UPR poster?
     # compile OREX station metadata
     orex_station_metadata = compile_metadata(
         orex_df,
@@ -627,79 +640,95 @@ def main():
     datasets_to_merge = []
 
     if INCLUDE_ASTRA:
-        # load ASTRA dataset
-        astra_df = pd.read_pickle(os.path.join(DIRECTORY_PATH, ASTRA_FILENAME))
-        # extract metadata and standardize the dataset
-        astra_standard_df, astra_event_metadata, astra_station_metadata = standardize_astra(astra_df)
-        # export the standardized dataset
-        astra_standard_df.to_pickle(os.path.join(DIRECTORY_PATH, ASTRA_STANDARDIZED_FILENAME))
-        print(f"Exported standardized ASTRA dataset to {os.path.join(DIRECTORY_PATH, ASTRA_STANDARDIZED_FILENAME)}")
+        if STANDARDIZE_DATASETS:
+            # load raw ASTRA dataset
+            astra_df = pd.read_pickle(os.path.join(DIRECTORY_PATH, ASTRA_FILENAME))
+            # extract metadata and standardize the dataset
+            astra_standard_df, astra_event_metadata, astra_station_metadata = standardize_astra(astra_df)
+            # export the standardized dataset
+            astra_standard_df.to_pickle(os.path.join(DIRECTORY_PATH, ASTRA_STANDARDIZED_FILENAME))
+            print(f"Exported standardized ASTRA dataset to {os.path.join(DIRECTORY_PATH, ASTRA_STANDARDIZED_FILENAME)}")
+            if SAVE_METADATA:
+                # export metadata files
+                astra_event_metadata.to_csv(os.path.join(DIRECTORY_PATH, ASTRA_EVENT_MD_FILENAME), index=True)
+                print(f"Exported ASTRA event metadata to {os.path.join(DIRECTORY_PATH, ASTRA_EVENT_MD_FILENAME)}")
+                astra_station_metadata.to_csv(os.path.join(DIRECTORY_PATH, ASTRA_STATION_MD_FILENAME), index=True)
+                print(f"Exported ASTRA station metadata to {os.path.join(DIRECTORY_PATH, ASTRA_STATION_MD_FILENAME)}")
+        else:
+            # load standardized ASTRA dataset
+            astra_standard_df = pd.read_pickle(os.path.join(DIRECTORY_PATH, ASTRA_STANDARDIZED_FILENAME))
         # add dataset to the list of datasets to merge
         datasets_to_merge.append(astra_standard_df)
-        # export metadata files
-        if SAVE_METADATA:
-            astra_event_metadata.to_csv(os.path.join(DIRECTORY_PATH, ASTRA_EVENT_MD_FILENAME), index=True)
-            print(f"Exported ASTRA event metadata to {os.path.join(DIRECTORY_PATH, ASTRA_EVENT_MD_FILENAME)}")
-            astra_station_metadata.to_csv(os.path.join(DIRECTORY_PATH, ASTRA_STATION_MD_FILENAME), index=True)
-            print(f"Exported ASTRA station metadata to {os.path.join(DIRECTORY_PATH, ASTRA_STATION_MD_FILENAME)}")
 
     if INCLUDE_SHAReD:
-        # load SHAReD dataset
-        shared_df = pd.read_pickle(os.path.join(DIRECTORY_PATH, SHARED_FILENAME))
-        # extract metadata and standardize the dataset
-        shared_standard_df, shared_event_metadata, shared_station_metadata = standardize_shared(shared_df=shared_df)
-        # export the standardized dataset
-        shared_standard_df.to_pickle(os.path.join(DIRECTORY_PATH, SHARED_STANDARDIZED_FILENAME))
-        print(f"Exported standardized SHAReD dataset to {os.path.join(DIRECTORY_PATH, SHARED_STANDARDIZED_FILENAME)}")
+        if STANDARDIZE_DATASETS:
+            # load raw SHAReD dataset
+            shared_df = pd.read_pickle(os.path.join(DIRECTORY_PATH, SHARED_FILENAME))
+            # extract metadata and standardize the dataset
+            shared_standard_df, shared_event_metadata, shared_station_metadata = standardize_shared(shared_df=shared_df)
+            # export the standardized dataset
+            shared_standard_df.to_pickle(os.path.join(DIRECTORY_PATH, SHARED_STANDARDIZED_FILENAME))
+            print(f"Exported standardized dataset to {os.path.join(DIRECTORY_PATH, SHARED_STANDARDIZED_FILENAME)}")
+            if SAVE_METADATA:
+                # export metadata files
+                shared_event_metadata.to_csv(os.path.join(DIRECTORY_PATH, SHARED_EVENT_MD_FILENAME), index=True)
+                print(f"Exported SHAReD event metadata to {os.path.join(DIRECTORY_PATH, SHARED_EVENT_MD_FILENAME)}")
+                shared_station_metadata.to_csv(os.path.join(DIRECTORY_PATH, SHARED_STATION_MD_FILENAME), index=True)
+                print(f"Exported SHAReD station metadata to {os.path.join(DIRECTORY_PATH, SHARED_STATION_MD_FILENAME)}")
+        else:
+            # load standardized SHAReD dataset
+            shared_standard_df = pd.read_pickle(os.path.join(DIRECTORY_PATH, SHARED_STANDARDIZED_FILENAME))
         # add dataset to the list of datasets to merge
         datasets_to_merge.append(shared_standard_df)
-        # export metadata files
-        if SAVE_METADATA:
-            shared_event_metadata.to_csv(os.path.join(DIRECTORY_PATH, SHARED_EVENT_MD_FILENAME), index=True)
-            print(f"Exported SHAReD event metadata to {os.path.join(DIRECTORY_PATH, SHARED_EVENT_MD_FILENAME)}")
-            shared_station_metadata.to_csv(os.path.join(DIRECTORY_PATH, SHARED_STATION_MD_FILENAME), index=True)
-            print(f"Exported SHAReD station metadata to {os.path.join(DIRECTORY_PATH, SHARED_STATION_MD_FILENAME)}")
 
     if INCLUDE_OREX:
-        # load OSIRIS-REx dataset
-        orex_df = load_orex_ds(orex_pkl_path=os.path.join(DIRECTORY_PATH, OREX_PKL_FILENAME),
-                               orex_npz_path=os.path.join(DIRECTORY_PATH, OREX_NPZ_FILENAME),
-                               load_method="npz")
-        # add station location data if missing
-        if OL.station_lat not in orex_df.columns:
-            orex_df = add_orex_location_data(orex_df,
-                                             location_source="merged",
-                                             orex_kml_path=os.path.join(DIRECTORY_PATH, OREX_KML_FILENAME),
-                                             orex_full_pkl_path=os.path.join(DIRECTORY_PATH, OREX_FULL_FILENAME))
-            orex_df.to_pickle(os.path.join(DIRECTORY_PATH, OREX_PKL_FILENAME))
-        # extract metadata and standardize the dataset
-        orex_standard_df, orex_station_metadata = standardize_orex(
-            orex_df=orex_df,
-            orex_audio_fs_hz=800.0,
-            orex_event_id="OREX",
-            orex_ml_label="hypersonic")
-        # export the standardized dataset
-        orex_standard_df.to_pickle(os.path.join(DIRECTORY_PATH, OREX_STANDARDIZED_FILENAME))
-        print(f"Exported standardized OREX dataset to {os.path.join(DIRECTORY_PATH, OREX_STANDARDIZED_FILENAME)}")
+        if STANDARDIZE_DATASETS:
+            # load raw OSIRIS-REx dataset
+            orex_df = load_orex_ds(orex_pkl_path=os.path.join(DIRECTORY_PATH, OREX_PKL_FILENAME),
+                                   orex_npz_path=os.path.join(DIRECTORY_PATH, OREX_NPZ_FILENAME),
+                                   load_method="pkl")
+            # add station location data if missing
+            if OL.station_lat not in orex_df.columns:
+                orex_df = add_orex_location_data(orex_df,
+                                                 location_source="kml",
+                                                 orex_kml_path=os.path.join(DIRECTORY_PATH, OREX_KML_FILENAME))
+                orex_df.to_pickle(os.path.join(DIRECTORY_PATH, OREX_PKL_FILENAME))
+            # extract metadata and standardize the dataset
+            orex_standard_df, orex_station_metadata = standardize_orex(
+                orex_df=orex_df,
+                orex_audio_fs_hz=800.0,
+                orex_event_id="OREX",
+                orex_ml_label="hypersonic")
+            # export the standardized dataset
+            orex_standard_df.to_pickle(os.path.join(DIRECTORY_PATH, OREX_STANDARDIZED_FILENAME))
+            print(f"Exported standardized OREX dataset to {os.path.join(DIRECTORY_PATH, OREX_STANDARDIZED_FILENAME)}")
+            if SAVE_METADATA:
+                # export the station metadata
+                orex_station_metadata.to_csv(os.path.join(DIRECTORY_PATH, OREX_STATION_MD_FILENAME), index=True)
+                print(f"Exported OREX metadata to {os.path.join(DIRECTORY_PATH, OREX_STATION_MD_FILENAME)}")
+        else:
+            # load standardized OSIRIS-REx dataset
+            orex_standard_df = pd.read_pickle(os.path.join(DIRECTORY_PATH, OREX_STANDARDIZED_FILENAME))
         # add dataset to the list of datasets to merge
         datasets_to_merge.append(orex_standard_df)
-        # export the station metadata
-        if SAVE_METADATA:
-            orex_station_metadata.to_csv(os.path.join(DIRECTORY_PATH, OREX_STATION_MD_FILENAME), index=True)
-            print(f"Exported OREX metadata to {os.path.join(DIRECTORY_PATH, OREX_STATION_MD_FILENAME)}")
 
     if INCLUDE_ESC50:
-        esc50_df = pd.read_pickle(os.path.join(DIRECTORY_PATH, ESC50_FILENAME))
-        esc50_standard_df, esc50_event_metadata = standardize_esc50(esc50_df=esc50_df)
-        # export the standardized dataset
-        esc50_standard_df.to_pickle(os.path.join(DIRECTORY_PATH, ESC50_STANDARDIZED_FILENAME))
-        print(f"Exported standardized ESC-50 dataset to {os.path.join(DIRECTORY_PATH, ESC50_STANDARDIZED_FILENAME)}")
+        if STANDARDIZE_DATASETS:
+            # load raw ESC-50 dataset
+            esc50_df = pd.read_pickle(os.path.join(DIRECTORY_PATH, ESC50_FILENAME))
+            esc50_standard_df, esc50_event_metadata = standardize_esc50(esc50_df=esc50_df)
+            # export the standardized dataset
+            esc50_standard_df.to_pickle(os.path.join(DIRECTORY_PATH, ESC50_STANDARDIZED_FILENAME))
+            print(f"Exported standardized dataset to {os.path.join(DIRECTORY_PATH, ESC50_STANDARDIZED_FILENAME)}")
+            if SAVE_METADATA:
+                # export metadata
+                esc50_event_metadata.to_csv(os.path.join(DIRECTORY_PATH, ESC50_EVENT_MD_FILENAME), index=True)
+                print(f"Exported ESC-50 event metadata to {os.path.join(DIRECTORY_PATH, ESC50_EVENT_MD_FILENAME)}")
+        else:
+            # load standardized ESC-50 dataset
+            esc50_standard_df = pd.read_pickle(os.path.join(DIRECTORY_PATH, ESC50_STANDARDIZED_FILENAME))
         # add dataset to the list of datasets to merge
         datasets_to_merge.append(esc50_standard_df)
-        # export metadata files
-        if SAVE_METADATA:
-            esc50_event_metadata.to_csv(os.path.join(DIRECTORY_PATH, ESC50_EVENT_MD_FILENAME), index=True)
-            print(f"Exported ESC-50 event metadata to {os.path.join(DIRECTORY_PATH, ESC50_EVENT_MD_FILENAME)}")
 
     # merge datasets into single DataFrame
     if MERGE_DATASETS:
