@@ -9,12 +9,16 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import quantum_inferno.plot_templates.plot_base as ptb
 from quantum_inferno.plot_templates.plot_templates import plot_mesh_wf_vert
 from quantum_inferno.styx_stx import tfr_stx_fft
 from quantum_inferno.utilities.rescaling import to_log2_with_epsilon
-# TODO: error, as before: soundscapes/data_processing.py is not in the package yet
+
 from data_processing import max_norm
+
+PICKLE_FILE_NAME = "OREX_UH_800Hz.pkl"
+PICKLE_DIR = os.getcwd()
 
 
 class OREXReader:
@@ -31,7 +35,7 @@ class OREXReader:
         self.dataset_name = "OREX"
         self.input_file = os.path.join(input_path, input_filename)
         try:
-            sig_np: np.ndarray = np.load(self.input_file, allow_pickle=True)
+            sig_np = pd.read_pickle(self.input_file)
         except Exception as e:
             print(f"Error loading file at {self.input_file}: {e}.  Exiting program.")
             exit(1)
@@ -44,15 +48,11 @@ class OREXReader:
     def plot_waveforms(self):
         """
         Plot waveforms from arrays of labels, waveforms, and epochs.
-
-        :param labels: array of labels
-        :param wfs: array of waveforms
-        :param epochs_s: array of epochs in seconds
         """
         self.fig, self.ax = plt.subplots(figsize=[10, 8])
         for j in range(len(self.sig_labels)):
-            sig_wf_j = self.sig_wfs[j, :]
-            sig_epoch_s_j = self.sig_epochs_s[j, :]
+            sig_wf_j = self.sig_wfs.loc[j]
+            sig_epoch_s_j = self.sig_epochs_s.loc[j]
             self.ax.plot(sig_epoch_s_j - sig_epoch_s_j[0], max_norm(sig_wf_j) / 1.4 + j, 'k')
 
         self.ax.set_yticks(np.arange(len(self.sig_labels)), labels=self.sig_labels)
@@ -74,9 +74,9 @@ class OREXReader:
 
         # Compute STX
         for i in range(len(self.sig_labels)):
-            sig_wf: np.ndarray = self.sig_wfs[i, :]
+            sig_wf: np.ndarray = self.sig_wfs[i]
             sig_wf /= np.std(sig_wf)        # Unit variance
-            sig_epoch_s: np.ndarray = self.sig_epochs_s[i, :]
+            sig_epoch_s: np.ndarray = self.sig_epochs_s[i]
             sig_time_s = sig_epoch_s - sig_epoch_s[0]
             sig_label: str = str(self.sig_labels[i])
 
@@ -110,7 +110,7 @@ class OREXReader:
 
 
 if __name__=="__main__":
-    orx = OREXReader(input_path=os.getcwd(), input_filename="OREX_UH_800Hz.pkl")
+    orx = OREXReader(PICKLE_DIR, PICKLE_FILE_NAME)
     orx.plot_waveforms()
     orx.plot_spectrogram()
     plt.show()

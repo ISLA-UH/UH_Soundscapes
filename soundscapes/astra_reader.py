@@ -6,7 +6,7 @@ The files can be downloaded from https://www.higp.hawaii.edu/archive/isla/UH_Sou
 IDE note: inherited classes aren't properly recognized, so the IDE may not recognize
             some properties or methods.
 
-TODO: Example doesn't run.  find out why
+TODO: Example must run on one sample instead of all.
 """
 from datetime import datetime, timezone
 import os
@@ -18,7 +18,7 @@ import numpy as np
 import dataset_reader as dsr
 
 TUTORIAL_PICKLE_FILE_NAME = "ASTRA.pkl"
-CURRENT_DIRECTORY = "/Users/tyler/Downloads/soundscapes_data/"
+CURRENT_DIRECTORY = os.getcwd()
 PATH_TO_TUTORIAL_PKL = os.path.join(CURRENT_DIRECTORY, TUTORIAL_PICKLE_FILE_NAME)
 PATH_TO_PKL = PATH_TO_TUTORIAL_PKL
 
@@ -198,6 +198,7 @@ class ASTRAReader(dsr.DatasetReader, dsr.PlotBase):
                  f"\nRocket: {launch_rocket_type}, {launch_rocket_model} configuration ({launch_n_srbs} SRBs)")
         sa_toa_color, pa_toa_color = self.cbf_colors[0], self.cbf_colors[1]
         sorted_df = self.data.sort_values(by=self.dataset_labels.est_prop_dist_km)
+        print(title)
         for station in sorted_df.index:
             # We'll start by normalizing the audio data from each station
             audio_data = self.data[self.dataset_labels.audio_data][station]
@@ -216,7 +217,7 @@ class ASTRAReader(dsr.DatasetReader, dsr.PlotBase):
             self.plot_single_event(f"{round(est_prop_distance_km, 1)} km", relative_time, audio_data)
             relative_start_toa_estimate = self.data[self.dataset_labels.s_aligned_toa_est][station] - rep_launch_epoch_s
             relative_peak_toa_estimate = self.data[self.dataset_labels.p_aligned_toa_est][station] - rep_launch_epoch_s
-            v_labels = ["Start-aligned TOA estimate", "Peak-aligned TOA estimate"] if station == self.data.index[0] else []
+            v_labels = ["Start-aligned TOA estimate", "Peak-aligned TOA estimate"]
             self.plot_vlines(
                 x_coords=[relative_start_toa_estimate, relative_peak_toa_estimate],
                 colors=[sa_toa_color, pa_toa_color],
