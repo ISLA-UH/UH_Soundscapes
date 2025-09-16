@@ -110,6 +110,7 @@ class OREXReader:
 
 
 if __name__=="__main__":
+    # TODO: calling .npz, redirect to .pkl
     orx = OREXReader(input_path=os.getcwd(), input_filename="orex_best_mics_800hz_1024pt.npz")
     orx.plot_waveforms()
     orx.plot_spectrogram()
