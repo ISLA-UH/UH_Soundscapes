@@ -13,6 +13,8 @@ import pandas as pd
 from quantum_inferno.cwt_atoms import cwt_chirp_from_sig
 from quantum_inferno.plot_templates.plot_templates_examples import plot_wf_mesh_vert_example
 
+from standard_labels import StandardLabels as STL
+
 # Colors for multiple plots
 CBF_COLOR_CYCLE = ['#377eb8', '#ff7f00', '#4daf4a', '#f781bf', '#a65628', '#984ea3', '#999999', '#e41a1c', '#dede00']
 
@@ -74,27 +76,27 @@ class DatasetLabels:
     Base class for dataset labels.  Inherited classes should implement specific labels.
 
     Properties:
-        event_id: str, name of the event ID column in the dataset.
+        standard_labels: StandardLabels class that contains all the standardized label names
     """
-    def __init__(self, event_id: str):
+    def __init__(self, standard_labels: STL = STL()):
         """
         Initialize the dataset labels.  Inherited class will implement specific labels.
 
-        :param event_id: str, name of the event ID column in the dataset.
+        :param standard_labels: StandardLabels class that contains all the standardized label names.
         """
-        self.event_id = event_id
-        # sample rate
+        self.standard_labels = standard_labels
+        # event specific metadata
+        self.event_metadata = []
+        # station specific metadata
+        self.station_metadata = []
+        # dictionary to standardize labels
+        self.standardize_dict = {}
 
-    def get_labels(self) -> dict:
+    def get_standard_labels(self) -> dict:
         """
-        Get the labels for the dataset.
-
-        :return: labels for the dataset as a dictionary.
+        :return: standard labels for the dataset as a dictionary.
         """
-        return {
-            "event_id": self.event_id
-            # sample rate
-        }
+        return self.standard_labels.as_dict()
 
 
 class DatasetReader:
@@ -140,7 +142,7 @@ class DatasetReader:
 
         :return: event ID column name as a string.
         """
-        return self.dataset_labels.event_id
+        return self.dataset_labels.standard_labels.event_id
 
     def load_data(self):
         """
@@ -172,4 +174,24 @@ class DatasetReader:
         """
         :return: Unique event IDs and their counts in the dataset.
         """
-        return np.unique(self.data[self.dataset_labels.event_id], return_counts=True)
+        return np.unique(self.data[self.dataset_labels.standard_labels.event_id], return_counts=True)
+
+    def compile_metadata(self, index_column: str, metadata_columns: list) -> pd.DataFrame:
+        """
+        Compile metadata for a dataset.
+
+        :param index_column: column name to use as the index for the metadata
+        :param metadata_columns: list of column names to include in the metadata
+        :return: DataFrame with event metadata
+        """
+        event_ids = self.data[index_column].unique()
+        metadata_df = pd.DataFrame(index=event_ids, columns=metadata_columns)
+        metadata_df[index_column] = event_ids
+        for event in metadata_df.index:
+            event_df = self.data[self.data[index_column] == event]
+            for col in metadata_columns:
+                if col in event_df.columns:
+                    metadata_df.at[event, col] = event_df[col].iloc[0]
+                else:
+                    metadata_df.at[event, col] = np.nan
+        return metadata_df

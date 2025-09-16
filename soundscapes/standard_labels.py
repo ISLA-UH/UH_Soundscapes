@@ -83,6 +83,28 @@ class StandardLabels:
             self.source_epoch_s
         ]
 
+    def as_dict(self) -> dict:
+        """
+        :return: standard labels as a dictionary.
+        """
+        return {
+            "station_id": self.station_id,
+            "station_network": self.station_network,
+            "station_latitude": self.station_lat,
+            "station_longitude": self.station_lon,
+            "station_altitude_m": self.station_alt,
+            "audio_waveform": self.audio_wf,
+            "first_audio_sample_epoch_s": self.t0_epoch_s,
+            "audio_sample_rate_nominal_hz": self.audio_fs,
+            "event_id": self.event_id,
+            "data_source": self.data_source,
+            "machine_learning_label": self.ml_label,
+            "source_latitude": self.source_lat,
+            "source_longitude": self.source_lon,
+            "source_altitude_m": self.source_alt,
+            "source_epoch_s": self.source_epoch_s
+        }
+
 
 class ASTRALabels:
     """
