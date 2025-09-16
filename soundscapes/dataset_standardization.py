@@ -26,7 +26,7 @@ EL = stl.ESC50Labels()
 OL = stl.OREXLabels()
 
 # path to the directory where the original dataset files are stored
-DIRECTORY_PATH: str = "/PATH/TO/DATAFILES/"
+DIRECTORY_PATH: str = "/Users/tyler/Downloads/soundscapes_data/"
 
 ASTRA_FILENAME: str = "ASTRA.pkl"  # name of the original ASTRA pickle file
 ASTRA_STANDARDIZED_FILENAME: str = "ASTRA_standardized.pkl"  # name of the standardized ASTRA pickle file
@@ -38,15 +38,15 @@ SHARED_STANDARDIZED_FILENAME: str = "SHAReD_standardized.pkl"  # name of the sta
 SHARED_EVENT_MD_FILENAME: str = "SHAReD_event_metadata.csv"  # name of the SHAReD event metadata CSV file
 SHARED_STATION_MD_FILENAME: str = "SHAReD_station_metadata.csv"  # name of the SHAReD station metadata CSV file
 
-ESC50_FILENAME: str = "esc50_df_800Hz.pkl"  # name of the original ESC-50 pickle file (800 Hz version)
+ESC50_FILENAME: str = "ESC50_800Hz.pkl"  # name of the original ESC-50 pickle file (800 Hz version)
 ESC50_STANDARDIZED_FILENAME: str = "ESC50_800Hz_standardized.pkl"  # name of the standardized ESC-50 pickle file
 ESC50_EVENT_MD_FILENAME: str = "ESC50_event_metadata.csv"  # name of the ESC-50 event metadata CSV file
 
-OREX_NPZ_FILENAME: str = "orex_best_mics_800hz_1024pt.npz"  # name of the original OREX NPZ file
-OREX_PKL_FILENAME: str = "orex_best_mics_800hz_1024pt.pkl"  # name of the original OREX PKL file
+OREX_NPZ_FILENAME: str = "OREX_UH_800Hz.npz"  # name of the original OREX NPZ file
+OREX_PKL_FILENAME: str = "OREX_UH_800Hz.pkl"  # name of the original OREX PKL file
 OREX_STANDARDIZED_FILENAME: str = "OREX_standardized.pkl"  # name of the standardized OREX pickle file
 OREX_STATION_MD_FILENAME: str = "OREX_station_metadata.csv"  # name of the OREX station metadata CSV file
-OREX_KML_FILENAME: str = "orex_redvox_best_stations_v03.kml"  # name of the OREX KML file
+OREX_KML_FILENAME: str = "OREX_UH.kml"  # name of the OREX KML file
 
 MERGED_DS_FILENAME: str = "merged_standardized_dataset.pkl"  # name of the merged standardized dataset pickle file
 

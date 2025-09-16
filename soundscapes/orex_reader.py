@@ -4,6 +4,7 @@ OREX Reader Class
 OREX example is simple enough that it doesn't need to inherit from the dataset_reader classes.
 
 The files can be downloaded from https://www.higp.hawaii.edu/archive/isla/UH_Soundscapes/OREX/
+TODO: Example doesn't run.  find out why
 """
 import os
 
@@ -110,7 +111,7 @@ class OREXReader:
 
 
 if __name__=="__main__":
-    orx = OREXReader(input_path=os.getcwd(), input_filename="orex_best_mics_800hz_1024pt.npz")
+    orx = OREXReader(input_path=os.getcwd(), input_filename="OREX_UH_800Hz.pkl")
     orx.plot_waveforms()
     orx.plot_spectrogram()
     plt.show()

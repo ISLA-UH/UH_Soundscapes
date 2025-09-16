@@ -15,7 +15,7 @@ import numpy as np
 from data_processing import demean_norm
 import dataset_reader as dsr
 
-TUTORIAL_PICKLE_FILE_NAME = "SHAReD_tutorial.pkl"
+TUTORIAL_PICKLE_FILE_NAME = "SHAReD.pkl"
 CURRENT_DIRECTORY = os.getcwd()
 PATH_TO_TUTORIAL_PKL = os.path.join(CURRENT_DIRECTORY, TUTORIAL_PICKLE_FILE_NAME)
 PATH_TO_PKL = PATH_TO_TUTORIAL_PKL

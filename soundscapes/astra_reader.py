@@ -5,6 +5,8 @@ The files can be downloaded from https://www.higp.hawaii.edu/archive/isla/UH_Sou
 
 IDE note: inherited classes aren't properly recognized, so the IDE may not recognize
             some properties or methods.
+
+TODO: Example doesn't run.  find out why
 """
 from datetime import datetime, timezone
 import os
@@ -15,8 +17,8 @@ import numpy as np
 
 import dataset_reader as dsr
 
-TUTORIAL_PICKLE_FILE_NAME = "ASTRA_ART-1_1637620009.pkl"
-CURRENT_DIRECTORY = os.getcwd()
+TUTORIAL_PICKLE_FILE_NAME = "ASTRA.pkl"
+CURRENT_DIRECTORY = "/Users/tyler/Downloads/soundscapes_data/"
 PATH_TO_TUTORIAL_PKL = os.path.join(CURRENT_DIRECTORY, TUTORIAL_PICKLE_FILE_NAME)
 PATH_TO_PKL = PATH_TO_TUTORIAL_PKL
 
