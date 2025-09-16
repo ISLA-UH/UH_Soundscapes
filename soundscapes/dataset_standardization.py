@@ -26,7 +26,7 @@ EL = stl.ESC50Labels()
 OL = stl.OREXLabels()
 
 # path to the directory where the original dataset files are stored
-DIRECTORY_PATH: str = "/PATH/TO/DATASETS/"
+DIRECTORY_PATH: str = "/PATH/TO/DATAFILES/"
 
 ASTRA_FILENAME: str = "ASTRA.pkl"  # name of the original ASTRA pickle file
 ASTRA_STANDARDIZED_FILENAME: str = "ASTRA_standardized.pkl"  # name of the standardized ASTRA pickle file
@@ -536,18 +536,22 @@ def add_orex_location_data(
                 orex_kml_path=orex_kml_path,
                 orex_full_pkl_path=orex_full_pkl_path)
         else:
-            print("One or both OREX location files not found. Attempting to load from whichever file is available.")
+            print("One or both OREX location files not found. Attempting to load KML first.")
             if os.path.isfile(orex_kml_path):
                 station_locations = extract_orex_station_locs_kml(orex_kml_path)
             else:
-                print(f"No file found at {orex_kml_path}")
+                print(f"No file found at {orex_kml_path}, trying pkl instead.")
                 station_locations = extract_orex_station_locs_pkl(orex_station_label_map, orex_full_pkl_path)
     else:  # default to 'kml'
         if os.path.isfile(orex_kml_path):
             station_locations = extract_orex_station_locs_kml(orex_kml_path)
         else:
             print("OREX KML file not found. Attempting to load from full PKL file instead.")
-            station_locations = extract_orex_station_locs_pkl(orex_station_label_map, orex_full_pkl_path)
+            if os.path.isfile(orex_full_pkl_path):
+                station_locations = extract_orex_station_locs_pkl(orex_station_label_map, orex_full_pkl_path)
+            else:
+                print(f"No file found at {orex_full_pkl_path}, cannot add station location data.")
+                return orex_df
     # add station locations to the DataFrame
     lat, lon, alt = [], [], []
     for station in orex_df.index:
@@ -696,8 +700,7 @@ def standardize_datasets():
     if INCLUDE_OREX:
         if STANDARDIZE_DATASETS:
             # load raw OSIRIS-REx dataset
-            orex_df = load_orex_ds(orex_pkl_path=os.path.join(DIRECTORY_PATH, OREX_PKL_FILENAME),
-                                   orex_npz_path=os.path.join(DIRECTORY_PATH, OREX_NPZ_FILENAME),
+            orex_df = load_orex_ds(orex_path=os.path.join(DIRECTORY_PATH, OREX_PKL_FILENAME),
                                    load_method="pkl")
             # add station location data if missing
             if OL.station_lat not in orex_df.columns:
