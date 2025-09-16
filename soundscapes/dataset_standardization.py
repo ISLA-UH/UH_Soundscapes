@@ -1,8 +1,11 @@
 """
-Standardize and/or merge acoustic datasets for machine learning applications. As of 09/15/2025, the included
-datasets are: Aggregated Smartphone Timeseries of Rocket-generated Acoustics (ASTRA), Smartphone High-explosive Audio
-Recordings Dataset (SHAReD), OSIRIS-REx UH ISLA hypersonic signals (OREX), and the environmental sound classification
-dataset (ESC-50).
+Standardize and/or merge acoustic datasets for machine learning applications.
+
+As of 09/15/2025, the included datasets are: 
+Aggregated Smartphone Timeseries of Rocket-generated Acoustics (ASTRA)
+Smartphone High-explosive Audio Recordings Dataset (SHAReD)
+OSIRIS-REx UH ISLA hypersonic signals (OREX)
+Environmental sound classification dataset (ESC-50).
 """
 import numpy as np
 import os
