@@ -66,5 +66,6 @@ References
 
 TODO:
 - Swap OREX NPZ for orex_best_mics_800hz_1024pt.pkl (in Google Drive) in HIGP data repository
+- Add kml file for OREX locations to HIGP data repository?
 - push to pypi
 - Provide best available trajectory (at a later time)
