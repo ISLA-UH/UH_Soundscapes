@@ -30,6 +30,7 @@ class OREXReader:
         """
         self.dataset_name = "OREX"
         self.input_file = os.path.join(input_path, input_filename)
+        # TODO: redirect to .pkl, fix labels
         try:
             sig_np: np.ndarray = np.load(self.input_file, allow_pickle=True)
         except Exception as e:
@@ -110,7 +111,9 @@ class OREXReader:
 
 
 if __name__=="__main__":
-    orx = OREXReader(input_path=os.getcwd(), input_filename="OREX_UH_800Hz.pkl")
+    PATH_TO_PKL = "/Users/mgarces/Documents/DATA_2025/UH_Soundscapes"
+    PICKLE_FILE_NAME = "OREX_UH_800Hz.pkl"
+    orx = OREXReader(input_path=PATH_TO_PKL, input_filename=PICKLE_FILE_NAME)
     orx.plot_waveforms()
     orx.plot_spectrogram()
     plt.show()
