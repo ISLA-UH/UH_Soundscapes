@@ -5,7 +5,7 @@ As of 09/15/2025, the included datasets are:
 Aggregated Smartphone Timeseries of Rocket-generated Acoustics (ASTRA)
 Smartphone High-explosive Audio Recordings Dataset (SHAReD)
 OSIRIS-REx UH ISLA hypersonic signals (OREX)
-Environmental sound classification dataset (ESC-50).
+Environmental sound classification dataset, fifty classes (ESC50).
 """
 import numpy as np
 import os
@@ -26,7 +26,7 @@ EL = stl.ESC50Labels()
 OL = stl.OREXLabels()
 
 # path to the directory where the original dataset files are stored
-DIRECTORY_PATH: str = "/Users/tyler/Downloads/soundscapes_data/"
+DIRECTORY_PATH: str = "/PATH/TO/DATAFILES/"
 
 ASTRA_FILENAME: str = "ASTRA.pkl"  # name of the original ASTRA pickle file
 ASTRA_STANDARDIZED_FILENAME: str = "ASTRA_standardized.pkl"  # name of the standardized ASTRA pickle file
@@ -38,6 +38,7 @@ SHARED_STANDARDIZED_FILENAME: str = "SHAReD_standardized.pkl"  # name of the sta
 SHARED_EVENT_MD_FILENAME: str = "SHAReD_event_metadata.csv"  # name of the SHAReD event metadata CSV file
 SHARED_STATION_MD_FILENAME: str = "SHAReD_station_metadata.csv"  # name of the SHAReD station metadata CSV file
 
+# TODO: INCLUDE 16kHZ VERSION OF ESC50?
 ESC50_FILENAME: str = "ESC50_800Hz.pkl"  # name of the original ESC-50 pickle file (800 Hz version)
 ESC50_STANDARDIZED_FILENAME: str = "ESC50_800Hz_standardized.pkl"  # name of the standardized ESC-50 pickle file
 ESC50_EVENT_MD_FILENAME: str = "ESC50_event_metadata.csv"  # name of the ESC-50 event metadata CSV file

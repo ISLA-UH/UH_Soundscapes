@@ -7,8 +7,10 @@ Annotated openly-available low-frequency audio libraries of rocket [1], explosio
 Expected files in HIGP data repository [11]:
 - ASTRA.pkl
 - SHAReD.pkl
-- esc50_df_800Hz.pkl
-- orex_best_mics_800hz_1024pt.pkl
+- ECS50_800Hz.pkl
+- ECS50_16kHz.pkl
+- OREX_UH_800Hz.pkl
+- OREX_UH.kml
 
 Overview of essential data fields included in the datasets:
 <table>
