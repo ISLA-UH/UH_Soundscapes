@@ -17,7 +17,7 @@ from fastkml.utils import find_all
 import pandas as pd
 from pygeoif.geometry import Point as pyPoint
 
-import soundscapes.standard_labels as stl
+import standard_labels as stl
 
 STL = stl.StandardLabels()
 SL = stl.SHAReDLabels()
@@ -26,7 +26,7 @@ EL = stl.ESC50Labels()
 OL = stl.OREXLabels()
 
 # path to the directory where the original dataset files are stored
-DIRECTORY_PATH: str = "/PATH/TO/DATAFILES/"
+DIRECTORY_PATH: str = "/Users/mgarces/Documents/DATA_2025/UH_Soundscapes/" # "/PATH/TO/DATAFILES/"
 
 ASTRA_FILENAME: str = "ASTRA.pkl"  # name of the original ASTRA pickle file
 ASTRA_STANDARDIZED_FILENAME: str = "ASTRA_standardized.pkl"  # name of the standardized ASTRA pickle file
