@@ -18,7 +18,6 @@ import dataset_reader as dsr
 import data_processing as dp
 from standard_labels import ASTRALabels
 
-# TODO: currently reading by default from full ASTRA file instead of tutorial PKL--switch back or leave as-is?
 TUTORIAL_PICKLE_FILE_NAME = "ASTRA.pkl"
 CURRENT_DIRECTORY = os.getcwd()
 PATH_TO_TUTORIAL_PKL = os.path.join(CURRENT_DIRECTORY, TUTORIAL_PICKLE_FILE_NAME)

@@ -42,7 +42,6 @@ def write_kml(kml_file: str, master_dict: Dict[str, Dict[str, float]]):
     # id is assigned dynamically as new elements are created
     new_id = 4
     for key in master_dict.keys():
-        # todo: how do we know if bar is better than alt?
         # set point description to os and sample rate
         description = "{} {}hz".format(master_dict[key]["os"], str(master_dict[key]["sample rate"]))
         # declare the placemark, then give it some coordinates

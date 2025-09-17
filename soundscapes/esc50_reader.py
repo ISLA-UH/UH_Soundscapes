@@ -17,8 +17,6 @@ from data_processing import rolling_mean
 import dataset_reader as dsr
 from standard_labels import ESC50Labels
 
-# TODO: currently reading by default from full files instead of tutorial files--switch back or eliminate TUTORIAL
-#  filename variables
 TUTORIAL_PICKLE_FILE_NAME_800HZ = "ESC50_800Hz.pkl"
 TUTORIAL_PICKLE_FILE_NAME_16KHZ = "ESC50_16kHz.pkl"
 CURRENT_DIRECTORY = os.getcwd()

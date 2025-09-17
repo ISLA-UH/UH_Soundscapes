@@ -16,8 +16,6 @@ from data_processing import demean_norm
 import dataset_reader as dsr
 from standard_labels import SHAReDLabels
 
-# TODO: currently reading by default from full file instead of tutorial file--switch back or eliminate TUTORIAL
-#  filename variable
 TUTORIAL_PICKLE_FILE_NAME = "SHAReD.pkl"
 CURRENT_DIRECTORY = os.getcwd()
 PATH_TO_TUTORIAL_PKL = os.path.join(CURRENT_DIRECTORY, TUTORIAL_PICKLE_FILE_NAME)
