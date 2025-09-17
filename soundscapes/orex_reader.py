@@ -79,17 +79,17 @@ class OREXReader(dsr.DatasetReader, dsr.PlotBase):
         """
         self.y_adj_buff -= 0.2
         for station in self.data.index:
-            sig_wf = self.data[self.dataset_labels.audio_data][station]
+            sig_wf = self.data[self.labels.audio_data][station]
             sig_wf = max_norm(sig_wf)
-            sig_epoch_s = self.data[self.dataset_labels.audio_epoch_s][station]
+            sig_epoch_s = self.data[self.labels.audio_epoch_s][station]
             sig_epoch_s = sig_epoch_s - sig_epoch_s[0]
-            self.plot_single_event(self.data[self.dataset_labels.station_label][station], sig_epoch_s, sig_wf)
+            self.plot_single_event(self.data[self.labels.station_label][station], sig_epoch_s, sig_wf)
             self.y_adj += self.y_adj_buff
             if self.show_frequency_plots:
                 self.plot_spectrogram(
                     timestamps=sig_epoch_s,
                     data=sig_wf,
-                    label=self.data[self.dataset_labels.station_label][station])
+                    label=self.data[self.labels.station_label][station])
         self.touch_up_plot("Time (s) relative to signal", "OSIRIS-REx UH ISLA RedVox Signals")
 
     def plot_spectrogram(self, timestamps: np.ndarray, data: np.ndarray, label: str):

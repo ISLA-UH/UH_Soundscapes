@@ -7,10 +7,8 @@ if needed.
 from typing import List
 import pandas as pd
 
-import dataset_reader as dsr
 
-
-class StandardLabels(dsr.DatasetLabels):
+class StandardLabels():
     """
     A class containing the column names used in standardized datasets for machine learning applications.
     """
@@ -51,7 +49,6 @@ class StandardLabels(dsr.DatasetLabels):
         :param source_altitude: altitude of the signal source in meters, when applicable
         :param source_epoch_s: epoch seconds of the source event, when applicable
         """
-        super().__init__(event_id)
         self.station_id = station_id
         self.station_network = station_network
         self.station_lat = station_latitude
@@ -108,7 +105,7 @@ class StandardLabels(dsr.DatasetLabels):
         }
 
 
-class ASTRALabels(dsr.DatasetLabels):
+class ASTRALabels():
     """
     A class containing the column names used in ASTRA.
     """
@@ -132,7 +129,6 @@ class ASTRALabels(dsr.DatasetLabels):
             rocket_type: str = "rocket_type",
             rocket_model_number: str = "rocket_model_number",
             n_srbs: str = "n_solid_rocket_boosters",
-            standard_labels: StandardLabels = StandardLabels(),
     ):
         """
         Defaults should be left in place for most uses.
@@ -157,7 +153,6 @@ class ASTRALabels(dsr.DatasetLabels):
         :param n_srbs: column containing the number of solid rocket boosters used
         :param standard_labels: instance of StandardLabels class for mapping to standard names
         """
-        super().__init__(launch_id)
         self.station_id = station_id
         self.station_make = station_make
         self.station_model = station_model
@@ -177,35 +172,8 @@ class ASTRALabels(dsr.DatasetLabels):
         self.rocket_model_number = rocket_model_number
         self.n_srbs = n_srbs
 
-        # column names associated with event-specific metadata
-        self.event_metadata = [
-            self.launch_id,
-            self.launch_pad_lat,
-            self.launch_pad_lon,
-            self.reported_launch_epoch_s,
-            self.rocket_type,
-            self.rocket_model_number,
-            self.n_srbs
-        ]
 
-        # column names associated with station-specific metadata
-        self.station_metadata = [self.station_id, self.station_make, self.station_model]
-
-        # dictionary to map ASTRA labels to standard labels
-        self.standardize_dict = {
-            self.audio_data: standard_labels.audio_wf,
-            self.first_sample_epoch_s: standard_labels.t0_epoch_s,
-            self.audio_fs: standard_labels.audio_fs,
-            self.station_id: standard_labels.station_id,
-            self.station_lat: standard_labels.station_lat,
-            self.station_lon: standard_labels.station_lon,
-            self.launch_id: standard_labels.event_id,
-            self.launch_pad_lat: standard_labels.source_lat,
-            self.launch_pad_lon: standard_labels.source_lon,
-            self.reported_launch_epoch_s: standard_labels.source_epoch_s}
-
-
-class SHAReDLabels(dsr.DatasetLabels):
+class SHAReDLabels():
     """
     A class containing the column names used in the SHAReD dataset.
     """
@@ -214,7 +182,7 @@ class SHAReDLabels(dsr.DatasetLabels):
         Defaults should be left in place for most uses.
         
         """
-        super().__init__("training_validation_test")
+        super().__init__()
         self.event_name: str = "event_name"
         self.source_yield_kg: str = "source_yield_kg"
         self.smartphone_id: str = "smartphone_id"
@@ -280,7 +248,7 @@ class SHAReDLabels(dsr.DatasetLabels):
             self.explosion_detonation_time: standard_labels.source_epoch_s}
 
 
-class ESC50Labels(dsr.DatasetLabels):
+class ESC50Labels():
     """
     A class containing the column names used in the ESC-50 pickle files.
     """
@@ -305,7 +273,7 @@ class ESC50Labels(dsr.DatasetLabels):
         :param yamnet_predicted_class: the name of the top class predicted by YAMNet, e.g. "Tools"
         :param standard_labels: instance of StandardLabels class for mapping to standard names
         """
-        super().__init__(clip_id)
+        super().__init__()
         self.clip_id = clip_id
         self.audio_data = audio_data
         self.audio_fs = audio_fs
@@ -327,7 +295,7 @@ class ESC50Labels(dsr.DatasetLabels):
             self.esc50_true_class: standard_labels.ml_label}
 
 
-class OREXLabels(dsr.DatasetLabels):
+class OREXLabels():
     """
     A class containing the keys used in the OSIRIS-REx NPZ file.
     """
@@ -364,7 +332,7 @@ class OREXLabels(dsr.DatasetLabels):
         :param event_id: key associated with the unique ID string of the event associated with the signal
         :param standard_labels: instance of StandardLabels class for mapping to standard names
         """
-        super().__init__(event_id)
+        super().__init__()
         self.station_id = station_id
         self.station_label = station_label
         self.station_make = station_make

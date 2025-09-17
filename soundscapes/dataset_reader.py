@@ -97,6 +97,12 @@ class DatasetLabels:
         :return: standard labels for the dataset as a dictionary.
         """
         return self.standard_labels.as_dict()
+    
+    def get_event_id(self) -> str:
+        """
+        :return: event ID column name from the dataset labels.
+        """
+        return self.standard_labels.event_id
 
 
 class DatasetReader:
@@ -110,7 +116,7 @@ class DatasetReader:
 
         default_filename: str, default filename to use if the input file is not found.
 
-        dataset_labels: DatasetLabels, labels for the dataset.
+        labels: DatasetLabels, labels for the dataset.
 
         save_data: bool, if True, save the processed data to a file. Default True.
 
@@ -130,19 +136,21 @@ class DatasetReader:
         self.dataset_name: str = dataset_name
         self.input_path: str = input_path
         self.default_filename: str = default_filename
-        self.dataset_labels: DatasetLabels = dataset_labels
+        self.labels: DatasetLabels = dataset_labels
         self.save_path: str = save_path
 
         self.data: pd.DataFrame = pd.DataFrame()
         self.load_data()
 
-    def get_event_id(self) -> str:
+    def get_event_id_col(self) -> str:
         """
-        Get the event ID column name from the dataset labels.
-
         :return: event ID column name as a string.
         """
-        return self.dataset_labels.standard_labels.event_id
+        if self.labels.standardize_dict:
+            for k, v in self.labels.standardize_dict.items():
+                if v == self.labels.standard_labels.event_id:
+                    return k
+        return self.labels.standard_labels.event_id
 
     def load_data(self):
         """
@@ -174,7 +182,7 @@ class DatasetReader:
         """
         :return: Unique event IDs and their counts in the dataset.
         """
-        return np.unique(self.data[self.dataset_labels.standard_labels.event_id], return_counts=True)
+        return np.unique(self.data[self.get_event_id_col()], return_counts=True)
 
     def compile_metadata(self, index_column: str, metadata_columns: list) -> pd.DataFrame:
         """
