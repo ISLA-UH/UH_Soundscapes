@@ -70,3 +70,33 @@ References
 9.	KC, R. J; Wilson, T; Fox, D; Spillman K.; Garcés M.A.; Elbing B. R. Acoustic Observations of the OSIRIS-REx Sample Return Capsule Re-Entry from Wendover Airport. Seism. Res. Lett. 2025 XX, 1–14; https://doi.org/10.1785/0220250019.
 10.	UH_Soundscapes, this repository
 11.	UH_Soundscapes, aggregated data at https://www.higp.hawaii.edu/archive/isla/UH_Soundscapes/
+
+
+## Troubleshooting
+### ModuleNotFoundError
+If you use VSCode, there may be issues with module imports.  You'll need to add the line
+```
+"terminal.integrated.env.OSVERSION": {"PYTHONPATH": "${workspaceFolder}"}
+```
+to your user.settings.json.  *OSVERSION* is one of: `windows`, `linux`, or `osx`.
+
+You can access the file via the title bar the top of the screen: View -> Command Palette, then choosing **Open User Settings (JSON)**. 
+Add the line above on a new line before the closing brace.  You'll have to add a comma to the previous last line of the file, if any.
+
+Once the line is added, your imports should work correctly.  If you still have issues, try restarting VS Code.
+
+Example for Windows version (replace with env.osx for Mac):
+```
+{
+    "files.autoSave": "afterDelay",
+    "git.confirmSync": false,
+    "terminal.integrated.env.windows": {"PYTHONPATH": "${workspaceFolder}"}
+}
+```
+
+### pip Timeouts
+Some dependencies may not install due to timeouts. To resolve this, try running
+```
+pip --timeout=10000 install PyQt5
+```
+or any arbitrarily large number for the timeout value.
