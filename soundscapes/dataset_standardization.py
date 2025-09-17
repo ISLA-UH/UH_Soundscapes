@@ -25,8 +25,9 @@ AL = stl.ASTRALabels()
 EL = stl.ESC50Labels()
 OL = stl.OREXLabels()
 
+CURRENT_DIRECTORY = os.getcwd()
 # path to the directory where the original dataset files are stored
-DIRECTORY_PATH: str = "/PATH/TO/DATAFILES/"
+DIRECTORY_PATH: str = CURRENT_DIRECTORY
 
 ASTRA_FILENAME: str = "ASTRA.pkl"  # name of the original ASTRA pickle file
 ASTRA_STANDARDIZED_FILENAME: str = "ASTRA_standardized.pkl"  # name of the standardized ASTRA pickle file
