@@ -16,79 +16,13 @@ import numpy as np
 
 import dataset_reader as dsr
 import data_processing as dp
+from standard_labels import ASTRALabels
 
 # TODO: currently reading by default from full ASTRA file instead of tutorial PKL--switch back or leave as-is?
 TUTORIAL_PICKLE_FILE_NAME = "ASTRA.pkl"
 CURRENT_DIRECTORY = os.getcwd()
 PATH_TO_TUTORIAL_PKL = os.path.join(CURRENT_DIRECTORY, TUTORIAL_PICKLE_FILE_NAME)
 PATH_TO_PKL = PATH_TO_TUTORIAL_PKL
-
-
-class ASTRALabels(dsr.DatasetLabels):
-    """
-    A class containing the column names used in ASTRA.
-    """
-
-    def __init__(
-            self,
-            station_id: str = "station_id",
-            station_make: str = "station_make",
-            station_model: str = "station_model_number",
-            audio_data: str = "audio_wf_raw",
-            first_sample_epoch_s: str = "first_sample_epoch_s",
-            audio_fs: str = "audio_sample_rate_nominal_hz",
-            station_lat: str = "station_latitude",
-            station_lon: str = "station_longitude",
-            launch_id: str = "launch_id",
-            launch_pad_lat: str = "launch_pad_latitude",
-            launch_pad_lon: str = "launch_pad_longitude",
-            reported_launch_epoch_s: str = "reported_launch_epoch_s",
-            s_aligned_toa_est: str = "start_aligned_arrival_time_estimate_epoch_s",
-            p_aligned_toa_est: str = "peak_aligned_arrival_time_estimate_epoch_s",
-            est_prop_dist_km: str = "estimated_propagation_distance_km",
-            rocket_type: str = "rocket_type",
-            rocket_model_number: str = "rocket_model_number",
-            n_srbs: str = "n_solid_rocket_boosters",
-    ):
-        """
-        Defaults should be left in place for most uses.
-        :param station_id: column containing the recording smartphones' unique station ID numbers
-        :param station_make: column containing the recording smartphones' makes
-        :param station_model: column containing the recording smartphones' models
-        :param audio_data: column containing the raw, uncalibrated audio data
-        :param first_sample_epoch_s: column containing the epoch second of the first sample
-        :param audio_fs: column containing the sample rate of the audio data in Hertz
-        :param station_lat: column containing the recording smartphones' latitude in degrees
-        :param station_lon: column containing the recording smartphones' longitude in degrees
-        :param launch_id: column containing the launches' unique ID strings
-        :param launch_pad_lat: column containing the launch pad latitudes in degrees
-        :param launch_pad_lon: column containing the launch pad longitudes in degrees
-        :param reported_launch_epoch_s: column containing the reported launch times in epoch seconds
-        :param s_aligned_toa_est: column containing the start-aligned arrival time estimates in epoch seconds
-        :param p_aligned_toa_est: column containing the peak-aligned arrival time estimates in epoch seconds
-        :param est_prop_dist_km: column containing the estimated propagation distances in kilometers
-        :param rocket_type: column containing the type of rockets launched (ex: "SpaceX Falcon 9")
-        :param rocket_model_number: column containing the model number of the rockets launched (ex: "F9-B5")
-        :param n_srbs: column containing the number of solid rocket boosters used
-        """
-        super().__init__(launch_id)
-        self.station_id = station_id
-        self.station_make = station_make
-        self.station_model = station_model
-        self.audio_data = audio_data
-        self.audio_fs = audio_fs
-        self.station_lat = station_lat
-        self.station_lon = station_lon
-        self.launch_pad_lat = launch_pad_lat
-        self.launch_pad_lon = launch_pad_lon
-        self.reported_launch_epoch_s = reported_launch_epoch_s
-        self.first_sample_epoch_s = first_sample_epoch_s
-        self.s_aligned_toa_est = s_aligned_toa_est
-        self.p_aligned_toa_est = p_aligned_toa_est
-        self.est_prop_dist_km = est_prop_dist_km
-        self.rocket_type = rocket_type
-        self.rocket_model_number = rocket_model_number
-        self.n_srbs = n_srbs
 
 
 class ASTRAReader(dsr.DatasetReader, dsr.PlotBase):

@@ -15,6 +15,7 @@ from scipy import signal
 
 from data_processing import rolling_mean
 import dataset_reader as dsr
+from standard_labels import ESC50Labels
 
 # TODO: currently reading by default from full files instead of tutorial files--switch back or eliminate TUTORIAL
 #  filename variables
@@ -28,36 +29,6 @@ PATH_TO_PKL_16KHZ = PATH_TO_TUTORIAL_PKL_16KHZ
 PKL_DIRECTORY = "/DIRECTORY/WITH/PKL/FILE"  # Replace with actual path, also used as output path
 PKL_FILE_NAME = "ESC50_CHANGEME.pkl"  # Replace with actual file name
 PATH_TO_PKL = os.path.join(PKL_DIRECTORY, PKL_FILE_NAME)
-
-
-class ESC50Labels(dsr.DatasetLabels):
-    """
-    A class containing the column names used in the ESC-50 pickle files.
-    """
-    def __init__(
-            self,
-            clip_id: str = "clip_id",
-            audio_data: str = "waveform",
-            audio_fs: str = "fs",
-            esc50_target: str = "target",
-            esc50_true_class: str = "true_class",
-            yamnet_predicted_class: str = "inferred_class",
-    ):
-        """
-        Defaults should be left in place for compatibility with the ESC-50 pickle files.
-        :param clip_id: the ID string of the Freesound clip the audio was taken from, e.g. "freesound123456"
-        :param audio_data: a numpy array containing the raw audio waveform amplitudes
-        :param audio_fs: the sampling frequency of the audio waveform in Hz, e.g. 800 or 16000
-        :param esc50_target: the target class number of the ESC-50 class, e.g. 37 for "clock_alarm"
-        :param esc50_true_class: the name of the true ESC-50 class, e.g. "clock_alarm"
-        :param yamnet_predicted_class: the name of the top class predicted by YAMNet, e.g. "Tools"
-        """
-        super().__init__(event_id=clip_id)
-        self.audio_data = audio_data
-        self.audio_fs = audio_fs
-        self.esc50_target = esc50_target
-        self.esc50_true_class = esc50_true_class
-        self.yamnet_predicted_class = yamnet_predicted_class
 
 
 class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
