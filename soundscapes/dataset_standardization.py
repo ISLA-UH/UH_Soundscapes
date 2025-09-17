@@ -44,6 +44,7 @@ ESC50_FILENAME: str = "ESC50_800Hz.pkl"  # name of the original ESC-50 pickle fi
 ESC50_STANDARDIZED_FILENAME: str = "ESC50_800Hz_standardized.pkl"  # name of the standardized ESC-50 pickle file
 ESC50_EVENT_MD_FILENAME: str = "ESC50_event_metadata.csv"  # name of the ESC-50 event metadata CSV file
 
+# TODO: Remove NPZ and KML
 OREX_NPZ_FILENAME: str = "OREX_UH_800Hz.npz"  # name of the original OREX NPZ file
 OREX_PKL_FILENAME: str = "OREX_UH_800Hz.pkl"  # name of the original OREX PKL file
 OREX_STANDARDIZED_FILENAME: str = "OREX_standardized.pkl"  # name of the standardized OREX pickle file
