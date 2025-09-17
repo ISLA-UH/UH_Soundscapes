@@ -5,11 +5,12 @@ sources. A standard set of labels is also included, along with methods to conver
 if needed.
 """
 from typing import List
-
 import pandas as pd
 
+import dataset_reader as dsr
 
-class StandardLabels:
+
+class StandardLabels(dsr.DatasetLabels):
     """
     A class containing the column names used in standardized datasets for machine learning applications.
     """
@@ -50,6 +51,7 @@ class StandardLabels:
         :param source_altitude: altitude of the signal source in meters, when applicable
         :param source_epoch_s: epoch seconds of the source event, when applicable
         """
+        super().__init__(event_id)
         self.station_id = station_id
         self.station_network = station_network
         self.station_lat = station_latitude
@@ -106,7 +108,7 @@ class StandardLabels:
         }
 
 
-class ASTRALabels:
+class ASTRALabels(dsr.DatasetLabels):
     """
     A class containing the column names used in ASTRA.
     """
@@ -155,6 +157,7 @@ class ASTRALabels:
         :param n_srbs: column containing the number of solid rocket boosters used
         :param standard_labels: instance of StandardLabels class for mapping to standard names
         """
+        super().__init__(launch_id)
         self.station_id = station_id
         self.station_make = station_make
         self.station_model = station_model
@@ -202,7 +205,7 @@ class ASTRALabels:
             self.reported_launch_epoch_s: standard_labels.source_epoch_s}
 
 
-class SHAReDLabels:
+class SHAReDLabels(dsr.DatasetLabels):
     """
     A class containing the column names used in the SHAReD dataset.
     """
@@ -211,6 +214,7 @@ class SHAReDLabels:
         Defaults should be left in place for most uses.
         
         """
+        super().__init__("training_validation_test")
         self.event_name: str = "event_name"
         self.source_yield_kg: str = "source_yield_kg"
         self.smartphone_id: str = "smartphone_id"
@@ -276,7 +280,7 @@ class SHAReDLabels:
             self.explosion_detonation_time: standard_labels.source_epoch_s}
 
 
-class ESC50Labels:
+class ESC50Labels(dsr.DatasetLabels):
     """
     A class containing the column names used in the ESC-50 pickle files.
     """
@@ -301,6 +305,7 @@ class ESC50Labels:
         :param yamnet_predicted_class: the name of the top class predicted by YAMNet, e.g. "Tools"
         :param standard_labels: instance of StandardLabels class for mapping to standard names
         """
+        super().__init__(clip_id)
         self.clip_id = clip_id
         self.audio_data = audio_data
         self.audio_fs = audio_fs
@@ -322,7 +327,7 @@ class ESC50Labels:
             self.esc50_true_class: standard_labels.ml_label}
 
 
-class OREXLabels:
+class OREXLabels(dsr.DatasetLabels):
     """
     A class containing the keys used in the OSIRIS-REx NPZ file.
     """
@@ -359,6 +364,7 @@ class OREXLabels:
         :param event_id: key associated with the unique ID string of the event associated with the signal
         :param standard_labels: instance of StandardLabels class for mapping to standard names
         """
+        super().__init__(event_id)
         self.station_id = station_id
         self.station_label = station_label
         self.station_make = station_make

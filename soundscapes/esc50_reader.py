@@ -15,9 +15,12 @@ from scipy import signal
 
 from data_processing import rolling_mean
 import dataset_reader as dsr
+from standard_labels import ESC50Labels
 
-TUTORIAL_PICKLE_FILE_NAME_800HZ = "esc50_tutorial_800Hz.pkl"
-TUTORIAL_PICKLE_FILE_NAME_16KHZ = "esc50_tutorial_16kHz.pkl"
+# TODO: currently reading by default from full files instead of tutorial files--switch back or eliminate TUTORIAL
+#  filename variables
+TUTORIAL_PICKLE_FILE_NAME_800HZ = "ESC50_800Hz.pkl"
+TUTORIAL_PICKLE_FILE_NAME_16KHZ = "ESC50_16kHz.pkl"
 CURRENT_DIRECTORY = os.getcwd()
 PATH_TO_TUTORIAL_PKL_800HZ = os.path.join(CURRENT_DIRECTORY, TUTORIAL_PICKLE_FILE_NAME_800HZ)
 PATH_TO_TUTORIAL_PKL_16KHZ = os.path.join(CURRENT_DIRECTORY, TUTORIAL_PICKLE_FILE_NAME_16KHZ)
@@ -26,36 +29,6 @@ PATH_TO_PKL_16KHZ = PATH_TO_TUTORIAL_PKL_16KHZ
 PKL_DIRECTORY = "/DIRECTORY/WITH/PKL/FILE"  # Replace with actual path, also used as output path
 PKL_FILE_NAME = "ESC50_CHANGEME.pkl"  # Replace with actual file name
 PATH_TO_PKL = os.path.join(PKL_DIRECTORY, PKL_FILE_NAME)
-
-
-class ESC50Labels(dsr.DatasetLabels):
-    """
-    A class containing the column names used in the ESC-50 pickle files.
-    """
-    def __init__(
-            self,
-            clip_id: str = "clip_id",
-            audio_data: str = "waveform",
-            audio_fs: str = "fs",
-            esc50_target: str = "target",
-            esc50_true_class: str = "true_class",
-            yamnet_predicted_class: str = "inferred_class",
-    ):
-        """
-        Defaults should be left in place for compatibility with the ESC-50 pickle files.
-        :param clip_id: the ID string of the Freesound clip the audio was taken from, e.g. "freesound123456"
-        :param audio_data: a numpy array containing the raw audio waveform amplitudes
-        :param audio_fs: the sampling frequency of the audio waveform in Hz, e.g. 800 or 16000
-        :param esc50_target: the target class number of the ESC-50 class, e.g. 37 for "clock_alarm"
-        :param esc50_true_class: the name of the true ESC-50 class, e.g. "clock_alarm"
-        :param yamnet_predicted_class: the name of the top class predicted by YAMNet, e.g. "Tools"
-        """
-        super().__init__(event_id=clip_id)
-        self.audio_data = audio_data
-        self.audio_fs = audio_fs
-        self.esc50_target = esc50_target
-        self.esc50_true_class = esc50_true_class
-        self.yamnet_predicted_class = yamnet_predicted_class
 
 
 class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
@@ -85,7 +58,7 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
 
     def load_data(self):
         """
-        Load the ASTRA dataset from the input_path.
+        Load the ESC-50 dataset from the input_path.
         """
         super().load_data()
         self.sample_rate = int(self.data[self.dataset_labels.audio_fs].iloc[0])
@@ -105,6 +78,7 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         last_line = ("\tYAMNet is run on the sample")
         if self.sample_rate != 16000:
             last_line += (f" (after upsampling from {self.sample_rate} to 16kHz)")
+        last_line += "\n"
         print(last_line)
 
     def get_sample_waveform(self, idx: int) -> np.ndarray:
@@ -190,7 +164,7 @@ if __name__=="__main__":
     esc16k.load_data()
     esc800.print_metadata()
     esc16k.print_metadata()
-    idx = random.randint(0, len(esc16k.data) - 1)
-    _ = esc800.plot_waveforms(idx)
-    _ = esc16k.plot_waveforms(idx)
+    index_to_plot = random.randint(0, len(esc16k.data) - 1)
+    esc800.plot_waveforms(index_to_plot)
+    esc16k.plot_waveforms(index_to_plot)
     plt.show()

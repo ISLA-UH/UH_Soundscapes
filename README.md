@@ -4,11 +4,12 @@ Open-access infrasound-adjacent soundscapes
 
 Annotated openly-available low-frequency audio libraries of rocket [1], explosion [2], and hypersonic [3] signatures are provided. We use a decimated version of the Environmental Sound Classification dataset [4] to provide a validated noise vocabulary. Although the data sources vary, a majority are from smartphone and publicly available recordings. The event types are described in open-access published papers [4-9], and a Python open-source repository was developed for accessing, standardizing, and processing the curated data and metadata [10-11]. This work was funded by the Department of Energy National Nuclear Security Administration under Awards DE-NA0003920 (MTV) and DE-NA0003921 (ETI).
 
-Expected files in HIGP data repository [11]:
+Main files in HIGP data repository [11]:
 - ASTRA.pkl
 - SHAReD.pkl
-- esc50_df_800Hz.pkl
-- orex_best_mics_800hz_1024pt.pkl
+- ESC50_800Hz.pkl
+- ESC50_16kHz.pkl
+- OREX_UH_800Hz.pkl
 
 Overview of essential data fields included in the datasets:
 <table>
@@ -21,28 +22,35 @@ Overview of essential data fields included in the datasets:
   </tr>
   <tr>
     <th>ASTRA.pkl</th>
-    <td>Rocket launches</td>
+    <td>Rocket launches, 800Hz</td>
     <td>Various (5-10 minutes)</td>
     <td>All</td>
     <td>All</td>
   </tr>
   <tr>
     <th>SHAReD.pkl</th>
-    <td>Explosions and ambient</td>
+    <td>Explosions and ambient, 800Hz and 8kHz</td>
     <td>0.96 seconds</td>
     <td>Some</td>
     <td>Some</td>
   </tr>
-<tr>
-    <th>esc50_df_800Hz.pkl</th>
-    <td>Various environmental sources</td>
+  <tr>
+    <th>ESC50_800Hz.pkl</th>
+    <td>Environmental sounds (50 classes), downsampled to 800 Hz</td>
     <td>5 seconds</td>
     <td>None</td>
     <td>None</td>
   </tr>
-<tr>
-    <th>orex_best_mics_800hz_1024pt.pkl</th>
-    <td>Hypersonic atmospheric reentry</td>
+    <tr>
+    <th>ESC50_16kHz.pkl</th>
+    <td>Environmental sounds (50 classes), downsampled to 16 kHz</td>
+    <td>5 seconds</td>
+    <td>None</td>
+    <td>None</td>
+  </tr>
+  <tr>
+    <th>OREX_UH_800Hz.pkl</th>
+    <td>Hypersonic atmospheric reentry, 800Hz</td>
     <td>1.28 seconds</td>
     <td>None*</td>
     <td>All</td>
@@ -62,10 +70,3 @@ References
 9.	KC, R. J; Wilson, T; Fox, D; Spillman K.; Garcés M.A.; Elbing B. R. Acoustic Observations of the OSIRIS-REx Sample Return Capsule Re-Entry from Wendover Airport. Seism. Res. Lett. 2025 XX, 1–14; https://doi.org/10.1785/0220250019.
 10.	UH_Soundscapes, this repository
 11.	UH_Soundscapes, aggregated data at https://www.higp.hawaii.edu/archive/isla/UH_Soundscapes/
-
-
-TODO:
-- Swap OREX NPZ for orex_best_mics_800hz_1024pt.pkl (in Google Drive) in HIGP data repository
-- Add kml file for OREX locations to HIGP data repository?
-- push to pypi
-- Provide best available trajectory (at a later time)
