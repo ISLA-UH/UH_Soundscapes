@@ -16,6 +16,8 @@ from scipy import signal
 from data_processing import rolling_mean
 import dataset_reader as dsr
 
+# TODO: currently reading by default from full files instead of tutorial files--switch back or eliminate TUTORIAL
+#  filename variables
 TUTORIAL_PICKLE_FILE_NAME_800HZ = "ESC50_800Hz.pkl"
 TUTORIAL_PICKLE_FILE_NAME_16KHZ = "ESC50_16kHz.pkl"
 CURRENT_DIRECTORY = os.getcwd()
@@ -85,7 +87,7 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
 
     def load_data(self):
         """
-        Load the ASTRA dataset from the input_path.
+        Load the ESC-50 dataset from the input_path.
         """
         super().load_data()
         self.sample_rate = int(self.data[self.dataset_labels.audio_fs].iloc[0])
@@ -105,6 +107,7 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         last_line = ("\tYAMNet is run on the sample")
         if self.sample_rate != 16000:
             last_line += (f" (after upsampling from {self.sample_rate} to 16kHz)")
+        last_line += "\n"
         print(last_line)
 
     def get_sample_waveform(self, idx: int) -> np.ndarray:
@@ -190,7 +193,7 @@ if __name__=="__main__":
     esc16k.load_data()
     esc800.print_metadata()
     esc16k.print_metadata()
-    idx = random.randint(0, len(esc16k.data) - 1)
-    _ = esc800.plot_waveforms(idx)
-    _ = esc16k.plot_waveforms(idx)
+    index_to_plot = random.randint(0, len(esc16k.data) - 1)
+    esc800.plot_waveforms(index_to_plot)
+    esc16k.plot_waveforms(index_to_plot)
     plt.show()
