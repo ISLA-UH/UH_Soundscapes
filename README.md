@@ -13,6 +13,13 @@ Main files in HIGP data repository [11]:
 - ESC50_16kHz.pkl
 
 
+# Installation
+Use pip:
+```
+pip install UH-Soundscapes
+```
+
+
 # Overview of essential data fields included in the datasets:
 <table>
   <tr>
