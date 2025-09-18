@@ -7,11 +7,13 @@ Annotated openly-available low-frequency audio libraries of rocket [1], explosio
 Main files in HIGP data repository [11]:
 - ASTRA.pkl
 - SHAReD.pkl
-- ESC50_800Hz.pkl
-- ESC50_16kHz.pkl
 - OREX_UH_800Hz.pkl
+- ESC50_800Hz.pkl
+- ESC50_8kHz.pkl
+- ESC50_16kHz.pkl
 
-Overview of essential data fields included in the datasets:
+
+# Overview of essential data fields included in the datasets:
 <table>
   <tr>
     <th></th>
@@ -35,8 +37,22 @@ Overview of essential data fields included in the datasets:
     <td>Some</td>
   </tr>
   <tr>
+    <th>OREX_UH_800Hz.pkl</th>
+    <td>Hypersonic atmospheric reentry, 800Hz</td>
+    <td>1.28 seconds</td>
+    <td>None*</td>
+    <td>All</td>
+  </tr>
+  <tr>
     <th>ESC50_800Hz.pkl</th>
     <td>Environmental sounds (50 classes), downsampled to 800 Hz</td>
+    <td>5 seconds</td>
+    <td>None</td>
+    <td>None</td>
+  </tr>
+  <tr>
+    <th>ESC50_8kHz.pkl</th>
+    <td>Environmental sounds (50 classes), downsampled to 8 kHz</td>
     <td>5 seconds</td>
     <td>None</td>
     <td>None</td>
@@ -47,13 +63,6 @@ Overview of essential data fields included in the datasets:
     <td>5 seconds</td>
     <td>None</td>
     <td>None</td>
-  </tr>
-  <tr>
-    <th>OREX_UH_800Hz.pkl</th>
-    <td>Hypersonic atmospheric reentry, 800Hz</td>
-    <td>1.28 seconds</td>
-    <td>None*</td>
-    <td>All</td>
   </tr>
 </table>
 *Source locations are not known, but can be estimated from OSIRIS-REx trajectory data.
