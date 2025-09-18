@@ -15,9 +15,9 @@ from quantum_inferno.plot_templates.plot_templates import plot_mesh_wf_vert
 from quantum_inferno.styx_stx import tfr_stx_fft
 from quantum_inferno.utilities.rescaling import to_log2_with_epsilon
 
-import dataset_reader as dsr
-from data_processing import max_norm
-from standard_labels import OREXLabels
+import uh_soundscapes.dataset_reader as dsr
+from uh_soundscapes.data_processing import max_norm
+from uh_soundscapes.standard_labels import OREXLabels
 
 
 PICKLE_FILE_NAME = "OREX_UH_800Hz.pkl"
