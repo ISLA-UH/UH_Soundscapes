@@ -105,8 +105,8 @@ Example for Windows version (replace with env.osx for Mac):
 ```
 
 ## pip Timeouts
-Some dependencies may not install due to timeouts. To resolve this, try running
+Some dependencies may not install due to timeouts over VPNs or firewalls. To resolve this, try running
 ```
-pip --timeout=10000 install PyQt5
+pip --timeout=10000 install 'package_name'
 ```
 or any arbitrarily large number for the timeout value.
