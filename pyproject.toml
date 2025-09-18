@@ -4,7 +4,7 @@
 
 [project]
 name = "uh_soundscapes"
-version = "1.1"
+version = "1.1.2"
 authors = [
     { name = "ISLA, UH" }
 ]
