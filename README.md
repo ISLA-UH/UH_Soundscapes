@@ -16,7 +16,7 @@ Main files in HIGP data repository [11]:
 # Installation
 Use pip:
 ```
-pip install UH-Soundscapes
+pip install uh-soundscapes
 ```
 
 
