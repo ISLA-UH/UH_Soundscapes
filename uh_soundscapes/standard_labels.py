@@ -7,7 +7,7 @@ if needed.
 from typing import List
 import pandas as pd
 
-import dataset_reader as dsr
+import uh_soundscapes.dataset_reader as dsr
 
 
 class StandardLabels(dsr.DatasetLabels):

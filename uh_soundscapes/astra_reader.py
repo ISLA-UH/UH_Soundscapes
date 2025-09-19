@@ -14,9 +14,9 @@ from typing import List, Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 
-import dataset_reader as dsr
-import data_processing as dp
-from standard_labels import ASTRALabels
+import uh_soundscapes.dataset_reader as dsr
+import uh_soundscapes.data_processing as dp
+from uh_soundscapes.standard_labels import ASTRALabels
 
 TUTORIAL_PICKLE_FILE_NAME = "ASTRA.pkl"
 CURRENT_DIRECTORY = os.getcwd()

@@ -12,9 +12,9 @@ from typing import Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 
-from data_processing import demean_norm
-import dataset_reader as dsr
-from standard_labels import SHAReDLabels
+from uh_soundscapes.data_processing import demean_norm
+import uh_soundscapes.dataset_reader as dsr
+from uh_soundscapes.standard_labels import SHAReDLabels
 
 TUTORIAL_PICKLE_FILE_NAME = "SHAReD.pkl"
 CURRENT_DIRECTORY = os.getcwd()

@@ -13,9 +13,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import signal
 
-from data_processing import rolling_mean
-import dataset_reader as dsr
-from standard_labels import ESC50Labels
+from uh_soundscapes.data_processing import rolling_mean
+import uh_soundscapes.dataset_reader as dsr
+from uh_soundscapes.standard_labels import ESC50Labels
 
 TUTORIAL_PICKLE_FILE_NAME_800HZ = "ESC50_800Hz.pkl"
 TUTORIAL_PICKLE_FILE_NAME_16KHZ = "ESC50_16kHz.pkl"

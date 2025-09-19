@@ -17,7 +17,7 @@ from fastkml.utils import find_all
 import pandas as pd
 from pygeoif.geometry import Point as pyPoint
 
-import standard_labels as stl
+import uh_soundscapes.standard_labels as stl
 
 STL = stl.StandardLabels()
 SL = stl.SHAReDLabels()
