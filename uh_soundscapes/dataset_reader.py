@@ -13,6 +13,8 @@ import pandas as pd
 from quantum_inferno.cwt_atoms import cwt_chirp_from_sig
 from quantum_inferno.plot_templates.plot_templates_examples import plot_wf_mesh_vert_example
 
+import uh_soundscapes.standard_labels as stdlbl
+
 # Colors for multiple plots
 CBF_COLOR_CYCLE = ['#377eb8', '#ff7f00', '#4daf4a', '#f781bf', '#a65628', '#984ea3', '#999999', '#e41a1c', '#dede00']
 
@@ -74,27 +76,35 @@ class DatasetLabels:
     Base class for dataset labels.  Inherited classes should implement specific labels.
 
     Properties:
-        event_id: str, name of the event ID column in the dataset.
+        event_labels: EventLabels class that contains event-specific label names
+
+        standard_labels: StandardLabels class that contains all the standardized label names
     """
-    def __init__(self, event_id: str):
+    def __init__(self, event_labels: stdlbl.EventLabels, 
+                 standard_labels: stdlbl.StandardLabels = stdlbl.StandardLabels()):
         """
         Initialize the dataset labels.  Inherited class will implement specific labels.
 
-        :param event_id: str, name of the event ID column in the dataset.
+        :param event_labels: EventLabels class that contains event-specific label names.
+        :param standard_labels: StandardLabels class that contains all the standardized label names.
         """
-        self.event_id = event_id
-        # sample rate
+        self.event_labels = event_labels
+        self.standard_labels = standard_labels
 
-    def get_labels(self) -> dict:
+    def get_standard_labels(self) -> dict:
         """
-        Get the labels for the dataset.
-
-        :return: labels for the dataset as a dictionary.
+        :return: standard labels for the dataset as a dictionary.
         """
-        return {
-            "event_id": self.event_id
-            # sample rate
-        }
+        return self.standard_labels.as_dict()
+    
+    def get_event_id(self) -> str:
+        """
+        :return: event ID column name from the dataset labels.
+        """
+        for k, v in self.event_labels.standardize_dict.items():
+            if v == self.standard_labels.event_id:
+                return k
+        return self.standard_labels.event_id
 
 
 class DatasetReader:
@@ -108,7 +118,7 @@ class DatasetReader:
 
         default_filename: str, default filename to use if the input file is not found.
 
-        dataset_labels: DatasetLabels, labels for the dataset.
+        labels: DatasetLabels, labels for the dataset.
 
         save_data: bool, if True, save the processed data to a file. Default True.
 
@@ -128,19 +138,17 @@ class DatasetReader:
         self.dataset_name: str = dataset_name
         self.input_path: str = input_path
         self.default_filename: str = default_filename
-        self.dataset_labels: DatasetLabels = dataset_labels
+        self.labels: DatasetLabels = dataset_labels
         self.save_path: str = save_path
 
         self.data: pd.DataFrame = pd.DataFrame()
         self.load_data()
 
-    def get_event_id(self) -> str:
+    def get_event_id_col(self) -> str:
         """
-        Get the event ID column name from the dataset labels.
-
         :return: event ID column name as a string.
         """
-        return self.dataset_labels.event_id
+        return self.labels.get_event_id()
 
     def load_data(self):
         """
@@ -172,4 +180,24 @@ class DatasetReader:
         """
         :return: Unique event IDs and their counts in the dataset.
         """
-        return np.unique(self.data[self.dataset_labels.event_id], return_counts=True)
+        return np.unique(self.data[self.get_event_id_col()], return_counts=True)
+
+    def compile_metadata(self, index_column: str, metadata_columns: list) -> pd.DataFrame:
+        """
+        Compile metadata for a dataset.
+
+        :param index_column: column name to use as the index for the metadata
+        :param metadata_columns: list of column names to include in the metadata
+        :return: DataFrame with event metadata
+        """
+        event_ids = self.data[index_column].unique()
+        metadata_df = pd.DataFrame(index=event_ids, columns=metadata_columns)
+        metadata_df[index_column] = event_ids
+        for event in metadata_df.index:
+            event_df = self.data[self.data[index_column] == event]
+            for col in metadata_columns:
+                if col in event_df.columns:
+                    metadata_df.at[event, col] = event_df[col].iloc[0]
+                else:
+                    metadata_df.at[event, col] = np.nan
+        return metadata_df

@@ -59,7 +59,7 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         Load the ESC-50 dataset from the input_path.
         """
         super().load_data()
-        self.sample_rate = int(self.data[self.dataset_labels.audio_fs].iloc[0])
+        self.sample_rate = int(self.data[self.labels.audio_fs].iloc[0])
 
     def print_metadata(self):
         """
@@ -68,7 +68,7 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         print(f"\nESC-50 dataset at {self.sample_rate}Hz:\n")
         # get some details about the dataset and print them out
         n_signals = len(self.data)
-        n_clips = len(np.unique(self.data[self.dataset_labels.event_id]))
+        n_clips = len(np.unique(self.data[self.labels.event_id]))
         print(f"\tThis dataset contains {n_signals} 5 s long samples from {n_clips} different Freesound audio clips.\n")
         print(f"\tEach of the {n_signals} rows in the pandas DataFrame contains an audio waveform, the ID number of")
         print(f"\tthe Freesound clip it was taken from, the sampling frequency the audio was downsampled to, the")
@@ -86,7 +86,7 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         :param idx: Index of the sample in the dataset.
         :return: The waveform as a NumPy array.
         """
-        return self.data[self.dataset_labels.audio_data][self.data.index[idx]]
+        return self.data[self.labels.audio_data][self.data.index[idx]]
 
     def plot_event(self, wf_timestamps: np.ndarray, sample_waveform: np.ndarray, freqs: np.ndarray, psd: np.ndarray):
         """
@@ -123,15 +123,15 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         :param idx: Index of the sample in the dataset.
         """
         sample_idx = self.data.index[idx]
-        sample_fs = self.data[self.dataset_labels.audio_fs][sample_idx]
+        sample_fs = self.data[self.labels.audio_fs][sample_idx]
         sample_waveform = self.get_sample_waveform(idx)
-        time_array = np.arange(len(self.data[self.dataset_labels.audio_data][sample_idx])) / sample_fs
+        time_array = np.arange(len(self.data[self.labels.audio_data][sample_idx])) / sample_fs
         # We'll demean and normalize the waveform to the range [-1, 1] for cleaner visualization.
         sample_waveform = sample_waveform - rolling_mean(sample_waveform, window_size=13)
         sample_waveform = sample_waveform / np.nanmax(np.abs(sample_waveform))
         # We'll also extract the true class and the class predicted by YAMNet for this sample to add to the plot title.
-        sample_esc50_class = self.data[self.dataset_labels.esc50_true_class][sample_idx]
-        sample_yamnet_class = self.data[self.dataset_labels.yamnet_predicted_class][sample_idx]
+        sample_esc50_class = self.data[self.labels.esc50_true_class][sample_idx]
+        sample_yamnet_class = self.data[self.labels.yamnet_predicted_class][sample_idx]
 
         # calculate and plot the Welch power spectral density (PSD)
         nperseg = self.sample_rate * 0.48  # 0.48 seconds per segment
@@ -150,7 +150,7 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
 
         if self.show_frequency_plots:
             print(f"\tPlotting the PSD of sample {sample_idx} from the {self.sample_rate} Hz ESC-50 dataset...\n")
-            tfr_title = f"CWT and waveform from ESC-50 PKL index {sample_idx} (clip ID {self.get_event_id()})"
+            tfr_title = f"CWT and waveform from ESC-50 PKL index {sample_idx} (clip ID {self.get_event_id_col()})"
             _ = self.plot_tfr(tfr_title, "", sample_fs, time_array, sample_waveform)
 
 

@@ -7,10 +7,8 @@ if needed.
 from typing import List
 import pandas as pd
 
-import uh_soundscapes.dataset_reader as dsr
 
-
-class StandardLabels(dsr.DatasetLabels):
+class StandardLabels():
     """
     A class containing the column names used in standardized datasets for machine learning applications.
     """
@@ -51,7 +49,6 @@ class StandardLabels(dsr.DatasetLabels):
         :param source_altitude: altitude of the signal source in meters, when applicable
         :param source_epoch_s: epoch seconds of the source event, when applicable
         """
-        super().__init__(event_id)
         self.station_id = station_id
         self.station_network = station_network
         self.station_lat = station_latitude
@@ -85,8 +82,50 @@ class StandardLabels(dsr.DatasetLabels):
             self.source_epoch_s
         ]
 
+    def as_dict(self) -> dict:
+        """
+        :return: standard labels as a dictionary.
+        """
+        return {
+            "station_id": self.station_id,
+            "station_network": self.station_network,
+            "station_latitude": self.station_lat,
+            "station_longitude": self.station_lon,
+            "station_altitude_m": self.station_alt,
+            "audio_waveform": self.audio_wf,
+            "first_audio_sample_epoch_s": self.t0_epoch_s,
+            "audio_sample_rate_nominal_hz": self.audio_fs,
+            "event_id": self.event_id,
+            "data_source": self.data_source,
+            "machine_learning_label": self.ml_label,
+            "source_latitude": self.source_lat,
+            "source_longitude": self.source_lon,
+            "source_altitude_m": self.source_alt,
+            "source_epoch_s": self.source_epoch_s
+        }
+    
 
-class ASTRALabels(dsr.DatasetLabels):
+class EventLabels():
+    """
+    A class for event specific labels.
+    """
+    def __init__(self, event_metadata: List[str] = [], station_metadata: List[str] = [], standardize_dict: dict = {}):
+        """
+        Initialize the event labels.
+
+        :param event_metadata: list of column names associated with event-specific metadata
+        :param station_metadata: list of column names associated with station-specific metadata
+        :param standardize_dict: dictionary to map dataset-specific labels to standard labels
+        """
+        # event specific metadata
+        self.event_metadata = event_metadata
+        # station specific metadata
+        self.station_metadata = station_metadata
+        # dictionary to standardize labels
+        self.standardize_dict = standardize_dict
+
+
+class ASTRALabels(EventLabels):
     """
     A class containing the column names used in ASTRA.
     """
@@ -135,7 +174,6 @@ class ASTRALabels(dsr.DatasetLabels):
         :param n_srbs: column containing the number of solid rocket boosters used
         :param standard_labels: instance of StandardLabels class for mapping to standard names
         """
-        super().__init__(launch_id)
         self.station_id = station_id
         self.station_make = station_make
         self.station_model = station_model
@@ -155,6 +193,7 @@ class ASTRALabels(dsr.DatasetLabels):
         self.rocket_model_number = rocket_model_number
         self.n_srbs = n_srbs
 
+        # set the EventLabels properties
         # column names associated with event-specific metadata
         self.event_metadata = [
             self.launch_id,
@@ -183,7 +222,7 @@ class ASTRALabels(dsr.DatasetLabels):
             self.reported_launch_epoch_s: standard_labels.source_epoch_s}
 
 
-class SHAReDLabels(dsr.DatasetLabels):
+class SHAReDLabels(EventLabels):
     """
     A class containing the column names used in the SHAReD dataset.
     """
@@ -192,7 +231,6 @@ class SHAReDLabels(dsr.DatasetLabels):
         Defaults should be left in place for most uses.
         
         """
-        super().__init__("training_validation_test")
         self.event_name: str = "event_name"
         self.source_yield_kg: str = "source_yield_kg"
         self.smartphone_id: str = "smartphone_id"
@@ -229,6 +267,7 @@ class SHAReDLabels(dsr.DatasetLabels):
         self.effective_yield_category: str = "effective_yield_category"
         self.event_id_number: str = "training_validation_test"
 
+        # set the EventLabels properties
         # column names associated with event-specific metadata
         self.event_metadata = [
             self.event_name,
@@ -258,7 +297,7 @@ class SHAReDLabels(dsr.DatasetLabels):
             self.explosion_detonation_time: standard_labels.source_epoch_s}
 
 
-class ESC50Labels(dsr.DatasetLabels):
+class ESC50Labels(EventLabels):
     """
     A class containing the column names used in the ESC-50 pickle files.
     """
@@ -283,7 +322,6 @@ class ESC50Labels(dsr.DatasetLabels):
         :param yamnet_predicted_class: the name of the top class predicted by YAMNet, e.g. "Tools"
         :param standard_labels: instance of StandardLabels class for mapping to standard names
         """
-        super().__init__(clip_id)
         self.clip_id = clip_id
         self.audio_data = audio_data
         self.audio_fs = audio_fs
@@ -291,6 +329,7 @@ class ESC50Labels(dsr.DatasetLabels):
         self.esc50_true_class = esc50_true_class
         self.yamnet_predicted_class = yamnet_predicted_class
 
+        # set the EventLabels properties
         # column names associated with event-specific metadata
         self.event_metadata = [self.clip_id, self.esc50_true_class, self.yamnet_predicted_class]
 
@@ -305,7 +344,7 @@ class ESC50Labels(dsr.DatasetLabels):
             self.esc50_true_class: standard_labels.ml_label}
 
 
-class OREXLabels(dsr.DatasetLabels):
+class OREXLabels(EventLabels):
     """
     A class containing the keys used in the OSIRIS-REx NPZ file.
     """
@@ -342,7 +381,6 @@ class OREXLabels(dsr.DatasetLabels):
         :param event_id: key associated with the unique ID string of the event associated with the signal
         :param standard_labels: instance of StandardLabels class for mapping to standard names
         """
-        super().__init__(event_id)
         self.station_id = station_id
         self.station_label = station_label
         self.station_make = station_make
@@ -356,6 +394,7 @@ class OREXLabels(dsr.DatasetLabels):
         self.audio_fs = audio_fs
         self.event_id = event_id
 
+        # set the EventLabels properties
         # column names associated with event-specific metadata
         self.event_metadata = [self.event_id]
 

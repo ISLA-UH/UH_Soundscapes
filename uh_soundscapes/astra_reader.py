@@ -9,19 +9,34 @@ IDE note: inherited classes aren't properly recognized, so the IDE may not recog
 """
 from datetime import datetime, timezone
 import os
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 import uh_soundscapes.dataset_reader as dsr
 import uh_soundscapes.data_processing as dp
-from uh_soundscapes.standard_labels import ASTRALabels
+from uh_soundscapes.standard_labels import ASTRALabels, StandardLabels
 
 TUTORIAL_PICKLE_FILE_NAME = "ASTRA.pkl"
-CURRENT_DIRECTORY = os.getcwd()
+CURRENT_DIRECTORY = "/Users/tyler/Downloads/soundscapes_data/"
 PATH_TO_TUTORIAL_PKL = os.path.join(CURRENT_DIRECTORY, TUTORIAL_PICKLE_FILE_NAME)
 PATH_TO_PKL = PATH_TO_TUTORIAL_PKL
+
+
+class ASTRADatasetLabels(dsr.DatasetLabels):
+    """
+    A class containing the column names used in ASTRA.
+
+    Inherits from DatasetLabels and uses ASTRALabels for column names.
+    """
+    def __init__(self, al: ASTRALabels = ASTRALabels(), stl: StandardLabels = StandardLabels()):
+        """
+        Initialize the ASTRADatasetLabels with the column names used in ASTRA.
+
+        :param al: ASTRALabels class with all the ASTRA label names.
+        """
+        super().__init__(al, stl)
 
 
 class ASTRAReader(dsr.DatasetReader, dsr.PlotBase):
@@ -32,23 +47,28 @@ class ASTRAReader(dsr.DatasetReader, dsr.PlotBase):
     """
 
     def __init__(self, input_path: str, default_filename: str, show_frequency_plots: bool = True,
-                 save_path: str = ".", fig_size: Tuple[int, int] = (10, 7)):
+                 save_path: str = ".", fig_size: Tuple[int, int] = (10, 7), 
+                 astra_labels: ASTRALabels = ASTRALabels(), standard_labels: StandardLabels = StandardLabels()):
         """
-        Initialize the SHAReDReader with the path to the dataset.
+        Initialize the ASTRAReader with the path to the dataset.
 
         :param input_path: path to the dataset file
         :param default_filename: default filename to use if the input file is not found
         :param show_frequency_plots: if True, display frequency plots. Default True.
         :param save_path: path to save the processed data. Default current directory.
         :param fig_size: Tuple of (width, height) for the figure size. Default is (10, 7).
+        :param astra_labels: ASTRALabels instance that lists all the ASTRA label names.  Default ASTRALabels().
+        :param standard_labels: StandardLabels instance that lists all the standardized label names. 
+                                Default StandardLabels().
         """
         # initialize the parent classes
-        dsr.DatasetReader.__init__(self, "ASTRA", input_path, default_filename, ASTRALabels(), save_path)
+        dsr.DatasetReader.__init__(self, "ASTRA", input_path, default_filename, 
+                                   ASTRADatasetLabels(astra_labels, standard_labels), save_path)
         dsr.PlotBase.__init__(self, fig_size)
         self.show_frequency_plots = show_frequency_plots
 
     def plot_vlines(self, x_coords: List[float], colors: List[str], line_styles: List[str], labels: List[str],
-                    ylim: Tuple[float, float] = (None, None)):
+                    ylim: Tuple[Optional[float], Optional[float]] = (None, None)):
         """
         Plot vertical lines for the ticks and labels on the local Axes object.
         Pass empty strings for labels if no label is needed.
@@ -119,54 +139,57 @@ class ASTRAReader(dsr.DatasetReader, dsr.PlotBase):
         len_data = len(self.data)
         print(f"This dataset contains {len_data} recording{'s' if len_data != 1 else ''} "
               f"from {num_ids} unique launch event{'s' if num_ids != 1 else ''}.")
+        metadata_df = self.compile_metadata(self.labels.event_labels.launch_id, self.labels.event_labels.event_metadata)
         for launch_id, count in zip(unique_id_counts[0], unique_id_counts[1]):
-            launch_df = self.data[self.data[self.dataset_labels.event_id] == launch_id]
-            rocket_type = launch_df[self.dataset_labels.rocket_type][launch_df.index[0]]
-            launch_date = launch_df[self.dataset_labels.reported_launch_epoch_s][launch_df.index[0]]
+            launch_df = self.data[self.data[metadata_df.launch_id] == launch_id]
+            rocket_type = launch_df[metadata_df.rocket_type][launch_df.index[0]]
+            launch_date = launch_df[metadata_df.reported_launch_epoch_s][launch_df.index[0]]
             date_string = (datetime.fromtimestamp(launch_date, tz=timezone.utc)).strftime("%d %b %Y")
             print(f"\t{rocket_type} launch {launch_id} on {date_string}: {count} recording(s)")
 
-    def plot_event(self, launch_id: str = None):
+    def plot_event(self, launch_id: str = ""):
         """
         Plot all data from a single event
-        :param launch_id: launch ID string of the event to plot.  If None, the first event in the dataset is plotted.
-        :return:
+
+        :param launch_id: launch ID string of the event to plot.  If empty or None, the first event in the 
+                        dataset is plotted.  Default empty string.
         """
-        if launch_id is None:
-            sorted_df = self.data.sort_values(by=self.dataset_labels.event_id)
-            launch_id = self.data[self.dataset_labels.event_id][sorted_df.index[0]]
-        launch_df = self.data[self.data[self.dataset_labels.event_id] == launch_id]
-        sorted_df = launch_df.sort_values(by=self.dataset_labels.est_prop_dist_km)
+        event_id = self.labels.get_event_id()
+        if not launch_id:
+            sorted_df = self.data.sort_values(by=event_id)
+            launch_id = self.data[event_id][sorted_df.index[0]]
+        launch_df = self.data[self.data[event_id] == launch_id]
+        sorted_df = launch_df.sort_values(by=self.labels.event_labels.est_prop_dist_km)
         # We'll be plotting the waveforms from the launch relative to the mission's reported launch time.
-        rep_launch_epoch_s = self.data[self.dataset_labels.reported_launch_epoch_s][sorted_df.index[0]]
+        rep_launch_epoch_s = self.data[self.labels.event_labels.reported_launch_epoch_s][sorted_df.index[0]]
         date_string = (datetime.fromtimestamp(rep_launch_epoch_s, tz=timezone.utc)).strftime("%d %B %Y")
         xlabel = f"Time (s) since launch"
         # For the title, we'll include some information on the launch included in the ASTRA dataset
-        launch_n_srbs = self.data[self.dataset_labels.n_srbs][sorted_df.index[0]]
-        launch_rocket_type = self.data[self.dataset_labels.rocket_type][sorted_df.index[0]]
-        launch_rocket_model = self.data[self.dataset_labels.rocket_model_number][sorted_df.index[0]]
+        launch_n_srbs = self.data[self.labels.event_labels.n_srbs][sorted_df.index[0]]
+        launch_rocket_type = self.data[self.labels.event_labels.rocket_type][sorted_df.index[0]]
+        launch_rocket_model = self.data[self.labels.event_labels.rocket_model_number][sorted_df.index[0]]
         title = (f"Normalized ASTRA audio data from launch {launch_id} on {date_string}"
                  f"\nRocket: {launch_rocket_type}, {launch_rocket_model} configuration ({launch_n_srbs} SRBs)")
         sa_toa_color, pa_toa_color = self.cbf_colors[0], self.cbf_colors[1]
         print(f"Plotting data from {launch_rocket_type} launch {launch_id} on {date_string}")
         for station in sorted_df.index:
             # We'll start by demeaning, normalizing, and removing the NaNs in the audio data from each station
-            audio_data = self.data[self.dataset_labels.audio_data][station]
+            audio_data = self.data[self.labels.event_labels.audio_data][station]
             audio_data = np.nan_to_num(dp.demean_norm(audio_data))
             # The epoch time of the first sample of each recording is included in ASTRA
-            start_time = self.data[self.dataset_labels.first_sample_epoch_s][station]
+            start_time = self.data[self.labels.event_labels.first_sample_epoch_s][station]
             # The sample rate of all the audio data in ASTRA is 800 Hz, but it is also included for convenience
-            fs = self.data[self.dataset_labels.audio_fs][station]
+            fs = self.data[self.labels.event_labels.audio_fs][station]
             epoch_time = (np.array(range(len(audio_data))) / fs) + start_time
             relative_time = epoch_time - rep_launch_epoch_s
             # To speed up plot generation, trim the signal to start at the reported launch time
             first_idx = np.argwhere(relative_time >= 0).flatten()[0]
             relative_time = relative_time[first_idx:]
             audio_data = audio_data[first_idx:]
-            est_prop_distance_km = self.data[self.dataset_labels.est_prop_dist_km][station]
+            est_prop_distance_km = self.data[self.labels.event_labels.est_prop_dist_km][station]
             self.plot_single_event(f"{round(est_prop_distance_km, 1)} km", relative_time, audio_data)
-            relative_start_toa_estimate = self.data[self.dataset_labels.s_aligned_toa_est][station] - rep_launch_epoch_s
-            relative_peak_toa_estimate = self.data[self.dataset_labels.p_aligned_toa_est][station] - rep_launch_epoch_s
+            relative_start_toa_estimate = self.data[self.labels.event_labels.s_aligned_toa_est][station] - rep_launch_epoch_s
+            relative_peak_toa_estimate = self.data[self.labels.event_labels.p_aligned_toa_est][station] - rep_launch_epoch_s
             v_labels = ["Start-aligned TOA estimate", "Peak-aligned TOA estimate"]
             self.plot_vlines(
                 x_coords=[relative_start_toa_estimate, relative_peak_toa_estimate],
@@ -175,55 +198,57 @@ class ASTRAReader(dsr.DatasetReader, dsr.PlotBase):
                 labels=v_labels,
                 ylim=(self.y_adj - 1, self.y_adj + 1)
             )
-            self.y_adj -= self.y_adj_buff
+            self.y_adj -= int(self.y_adj_buff)
             if self.show_frequency_plots:
-                station_id = f"{self.data[self.dataset_labels.station_id][station]} ({est_prop_distance_km:.1f} km)"
+                station_id = f"{self.data[self.labels.event_labels.station_id][station]} ({est_prop_distance_km:.1f} km)"
                 self.plot_tfr(f"CWT and waveform from launch {launch_id}", station_id, fs, relative_time, audio_data)
         self.touch_up_plot(xlabel, title)
 
-    def plot_recording(self, launch_id: str = None, station_id: str = None):
+    def plot_recording(self, launch_id: str = "", station_id: str = ""):
         """
         Plot data from a single station during a single event
-        :param launch_id: launch ID string of the recording to plot
-        :param station_id: station ID string of the recording to plot
-        :return:
+
+        :param launch_id: launch ID string of the recording to plot.  If empty or None, the first event in the 
+                            dataset is plotted.  Default empty string.
+        :param station_id: station ID string of the recording to plot.  If empty or None, the first station in 
+                            the event is plotted.  Default empty string.
         """
-        if launch_id is None:
-            launch_id = self.data[self.dataset_labels.event_id][self.data.index[0]]
-        launch_df = self.data[self.data[self.dataset_labels.event_id] == launch_id]
-        sorted_df = launch_df.sort_values(by=self.dataset_labels.est_prop_dist_km)
-        if station_id is not None:
-            sorted_df = sorted_df[sorted_df[self.dataset_labels.station_id] == station_id]
+        if not launch_id:
+            launch_id = self.data[self.labels.get_event_id()][self.data.index[0]]
+        launch_df = self.data[self.data[self.labels.get_event_id()] == launch_id]
+        sorted_df = launch_df.sort_values(by=self.labels.event_labels.est_prop_dist_km)
+        if station_id:
+            sorted_df = sorted_df[sorted_df[self.labels.event_labels.station_id] == station_id]
         station = sorted_df.index[0]
         # We'll be plotting the waveforms from the launch relative to the mission's reported launch time.
-        rep_launch_epoch_s = self.data[self.dataset_labels.reported_launch_epoch_s][station]
+        rep_launch_epoch_s = self.data[self.labels.event_labels.reported_launch_epoch_s][station]
         date_string = (datetime.fromtimestamp(rep_launch_epoch_s, tz=timezone.utc)).strftime("%d %B %Y")
         xlabel = f"Time (s) since launch"
         # For the title, we'll include some information on the launch included in the ASTRA dataset
-        launch_n_srbs = self.data[self.dataset_labels.n_srbs][station]
-        launch_rocket_type = self.data[self.dataset_labels.rocket_type][station]
-        launch_rocket_model = self.data[self.dataset_labels.rocket_model_number][station]
+        launch_n_srbs = self.data[self.labels.event_labels.n_srbs][station]
+        launch_rocket_type = self.data[self.labels.event_labels.rocket_type][station]
+        launch_rocket_model = self.data[self.labels.event_labels.rocket_model_number][station]
         title = (f"Normalized ASTRA audio data from launch {launch_id} on {date_string}"
                  f"\nRocket: {launch_rocket_type}, {launch_rocket_model} configuration ({launch_n_srbs} SRBs)")
         sa_toa_color, pa_toa_color = self.cbf_colors[0], self.cbf_colors[1]
         print(f"Plotting data from {launch_rocket_type} launch {launch_id} on {date_string}")
         # We'll start by removing the NaNs, demeaning, and normalizing the audio data
-        audio_data = self.data[self.dataset_labels.audio_data][station]
+        audio_data = self.data[self.labels.event_labels.audio_data][station]
         audio_data = dp.demean_norm(np.nan_to_num(audio_data))
         # The epoch time of the first sample of each recording is included in ASTRA
-        start_time = self.data[self.dataset_labels.first_sample_epoch_s][station]
+        start_time = self.data[self.labels.event_labels.first_sample_epoch_s][station]
         # The sample rate of all the audio data in ASTRA is 800 Hz, but it is also included for convenience
-        fs = self.data[self.dataset_labels.audio_fs][station]
+        fs = self.data[self.labels.event_labels.audio_fs][station]
         epoch_time = (np.array(range(len(audio_data))) / fs) + start_time
         relative_time = epoch_time - rep_launch_epoch_s
         # To speed up plot generation, trim the signal to start at the reported launch time
         first_idx = np.argwhere(relative_time >= 0).flatten()[0]
         relative_time = relative_time[first_idx:]
         audio_data = audio_data[first_idx:]
-        est_prop_distance_km = self.data[self.dataset_labels.est_prop_dist_km][station]
+        est_prop_distance_km = self.data[self.labels.event_labels.est_prop_dist_km][station]
         self.plot_single_event(f"{round(est_prop_distance_km, 1)} km", relative_time, audio_data)
-        relative_start_toa_estimate = self.data[self.dataset_labels.s_aligned_toa_est][station] - rep_launch_epoch_s
-        relative_peak_toa_estimate = self.data[self.dataset_labels.p_aligned_toa_est][station] - rep_launch_epoch_s
+        relative_start_toa_estimate = self.data[self.labels.event_labels.s_aligned_toa_est][station] - rep_launch_epoch_s
+        relative_peak_toa_estimate = self.data[self.labels.event_labels.p_aligned_toa_est][station] - rep_launch_epoch_s
         v_labels = ["Start-aligned TOA estimate", "Peak-aligned TOA estimate"]
         self.plot_vlines(
             x_coords=[relative_start_toa_estimate, relative_peak_toa_estimate],
@@ -231,7 +256,7 @@ class ASTRAReader(dsr.DatasetReader, dsr.PlotBase):
             line_styles=["-", "--"],
             labels=v_labels
         )
-        station_id = f"{self.data[self.dataset_labels.station_id][station]} ({est_prop_distance_km:.1f} km)"
+        station_id = f"{self.data[self.labels.event_labels.station_id][station]} ({est_prop_distance_km:.1f} km)"
         if self.show_frequency_plots:
             self.plot_tfr(f"CWT and waveform from launch {launch_id}", station_id, fs, relative_time, audio_data)
         self.touch_up_plot(xlabel, title)
