@@ -14,12 +14,27 @@ import numpy as np
 
 from uh_soundscapes.data_processing import demean_norm
 import uh_soundscapes.dataset_reader as dsr
-from uh_soundscapes.standard_labels import SHAReDLabels
+from uh_soundscapes.standard_labels import SHAReDLabels, StandardLabels
 
 TUTORIAL_PICKLE_FILE_NAME = "SHAReD.pkl"
-CURRENT_DIRECTORY = os.getcwd()
+CURRENT_DIRECTORY = "/Users/tyler/Downloads/soundscapes_data/"
 PATH_TO_TUTORIAL_PKL = os.path.join(CURRENT_DIRECTORY, TUTORIAL_PICKLE_FILE_NAME)
 PATH_TO_PKL = PATH_TO_TUTORIAL_PKL
+
+
+class SHAReDDatasetLabels(dsr.DatasetLabels):
+    """
+    A class containing the column names used in SHAReD.
+
+    Inherits from DatasetLabels and uses SHAReDLabels for column names.
+    """
+    def __init__(self, shl: SHAReDLabels = SHAReDLabels(), stl: StandardLabels = StandardLabels()):
+        """
+        Initialize the SHAReDDatasetLabels with the column names used in SHAReD.
+
+        :param shl: SHAReDLabels class with all the SHAReD label names.
+        """
+        super().__init__(shl, stl)
 
 
 class SHAReDReader(dsr.DatasetReader, dsr.PlotBase):
@@ -29,7 +44,8 @@ class SHAReDReader(dsr.DatasetReader, dsr.PlotBase):
     Inherits from DatasetReader and uses SHAReDLabels for column names.
     """
     def __init__(self, input_path: str, default_filename: str, save_path: str = ".", subplots_rows: int = 3, 
-                 subplots_cols: int = 2, fig_size: Tuple[int, int] = (10, 7)):
+                 subplots_cols: int = 2, fig_size: Tuple[int, int] = (10, 7), 
+                 shared_labels: SHAReDLabels = SHAReDLabels(), standard_labels: StandardLabels = StandardLabels()):
         """
         Initialize the SHAReDReader with the path to the dataset.
 
@@ -43,8 +59,12 @@ class SHAReDReader(dsr.DatasetReader, dsr.PlotBase):
         :param subplots_rows: number of rows in the subplots. Default is 3.
         :param subplots_cols: number of columns in the subplots. Default is 2.
         :param fig_size: size of the figure for plotting. Default is (10, 7).
+        :param shared_labels: SHAReDLabels instance that lists all the SHAReD label names.  Default SHAReDLabels().
+        :param standard_labels: StandardLabels instance that lists all the standardized label names. 
+                                Default StandardLabels().
         """
-        dsr.DatasetReader.__init__(self, "SHAReD Explosions", input_path, default_filename, SHAReDLabels(), save_path)
+        dsr.DatasetReader.__init__(self, "SHAReD Explosions", input_path, default_filename, 
+                                   SHAReDDatasetLabels(shared_labels, standard_labels), save_path)
         dsr.PlotBase.__init__(self, fig_size, subplots_rows, subplots_cols)
 
     def load_data(self):
@@ -71,9 +91,9 @@ class SHAReDReader(dsr.DatasetReader, dsr.PlotBase):
         """
         Print the data for each event in the dataset.
         """
-        for event_id, count in np.unique(self.data[self.labels.event_id], return_counts=True):
-            event_df = self.data[self.data[self.labels.event_id] == event_id]
-            eq_yield = event_df[self.labels.source_yield_kg][event_df.index[0]]
+        for event_id, count in np.unique(self.data[self.labels.event_labels.event_id], return_counts=True):
+            event_df = self.data[self.data[self.labels.event_labels.event_id] == event_id]
+            eq_yield = event_df[self.labels.event_labels.source_yield_kg][event_df.index[0]]
             print(f"\tEvent {event_id}: {eq_yield} kg TNT eq. yield, {count} recording(s)")
 
     def print_event_info(self, event_id: int):
@@ -82,10 +102,10 @@ class SHAReDReader(dsr.DatasetReader, dsr.PlotBase):
 
         :param event_id: The unique ID number of the event to print information for.
         """
-        event_name = self.data[self.labels.event_name][self.data.index[0]]
-        source_yield = self.data[self.labels.source_yield_kg][self.data.index[0]]
-        smartphone_id = self.data[self.labels.smartphone_id][self.data.index[0]]
-        dist_m = self.data[self.labels.distance_from_explosion_m][self.data.index[0]]
+        event_name = self.data[self.labels.event_labels.event_name][self.data.index[0]]
+        source_yield = self.data[self.labels.event_labels.source_yield_kg][self.data.index[0]]
+        smartphone_id = self.data[self.labels.event_labels.smartphone_id][self.data.index[0]]
+        dist_m = self.data[self.labels.event_labels.distance_from_explosion_m][self.data.index[0]]
         print(f"\nExample event name: {event_name}, event ID number: {event_id}")
         print(f"{source_yield} kg TNT eq. detonation recorded by station {smartphone_id} at {round(dist_m)}m range.")
 
@@ -127,18 +147,22 @@ class SHAReDReader(dsr.DatasetReader, dsr.PlotBase):
             s_type = "base"
         if s_type == "ambient":
             index = 0
-            labels = [self.labels.ambient_microphone_time_s, self.labels.ambient_microphone_data, 
-                      self.labels.ambient_barometer_time_s, self.labels.ambient_barometer_data,
-                      self.labels.ambient_accelerometer_time_s, self.labels.ambient_accelerometer_data_x,
-                      self.labels.ambient_accelerometer_data_y, self.labels.ambient_accelerometer_data_z]
-            start_time = self.data[self.labels.ambient_microphone_time_s][station_idx][0]
+            labels = [self.labels.event_labels.ambient_microphone_time_s, 
+                      self.labels.event_labels.ambient_microphone_data,
+                      self.labels.event_labels.ambient_barometer_time_s, 
+                      self.labels.event_labels.ambient_barometer_data,
+                      self.labels.event_labels.ambient_accelerometer_time_s, 
+                      self.labels.event_labels.ambient_accelerometer_data_x,
+                      self.labels.event_labels.ambient_accelerometer_data_y,
+                      self.labels.event_labels.ambient_accelerometer_data_z]
+            start_time = self.data[self.labels.event_labels.ambient_microphone_time_s][station_idx][0]
         else:
             index = 1
-            labels = [self.labels.microphone_time_s, self.labels.microphone_data, 
-                      self.labels.barometer_time_s, self.labels.barometer_data,
-                      self.labels.accelerometer_time_s, self.labels.accelerometer_data_x,
-                      self.labels.accelerometer_data_y, self.labels.accelerometer_data_z]
-            start_time = self.data[self.labels.explosion_detonation_time][station_idx]
+            labels = [self.labels.event_labels.microphone_time_s, self.labels.event_labels.microphone_data,
+                      self.labels.event_labels.barometer_time_s, self.labels.event_labels.barometer_data,
+                      self.labels.event_labels.accelerometer_time_s, self.labels.event_labels.accelerometer_data_x,
+                      self.labels.event_labels.accelerometer_data_y, self.labels.event_labels.accelerometer_data_z]
+            start_time = self.data[self.labels.event_labels.explosion_detonation_time][station_idx]
         self.ax[0, index].plot(self.data[labels[0]][station_idx] - start_time,
                                demean_norm(self.data[labels[1]][station_idx]), lw=1, color="k")
         self.ax[1, index].plot(self.data[labels[2]][station_idx] - start_time,
@@ -155,31 +179,31 @@ class SHAReDReader(dsr.DatasetReader, dsr.PlotBase):
 
     def plot_data(self):
         station_idx = self.data.index[0]
-        event_name = self.data[self.labels.event_name][station_idx]
-        event_id = self.data[self.labels.event_id][station_idx]
-        station_id = self.data[self.labels.smartphone_id][station_idx]
+        event_name = self.data[self.labels.event_labels.event_name][station_idx]
+        event_id = self.data[self.labels.get_event_id()][station_idx]
+        station_id = self.data[self.labels.event_labels.smartphone_id][station_idx]
         print(f"\nEvent name: {event_name}, event ID number: {event_id}, station ID: {station_id}")
-        source_yield = self.data[self.labels.source_yield_kg][station_idx]
+        source_yield = self.data[self.labels.event_labels.source_yield_kg][station_idx]
         title_header = f"SHAReD event {event_name}"
         if source_yield is None:
             title_header += " source yield not included"
         else:
             title_header += f" {source_yield} kg TNT eq."
         # We'll plot the data from each sensor for both the "explosion" and "ambient" segments of data.
-        detonation_ts = self.data[self.labels.explosion_detonation_time][station_idx]
-        start_audio_ts = self.data[self.labels.microphone_time_s][station_idx][0] - detonation_ts
-        end_audio_ts = self.data[self.labels.microphone_time_s][station_idx][-1] - detonation_ts
-        dist_m = self.data[self.labels.distance_from_explosion_m][station_idx]
+        detonation_ts = self.data[self.labels.event_labels.explosion_detonation_time][station_idx]
+        start_audio_ts = self.data[self.labels.event_labels.microphone_time_s][station_idx][0] - detonation_ts
+        end_audio_ts = self.data[self.labels.event_labels.microphone_time_s][station_idx][-1] - detonation_ts
+        dist_m = self.data[self.labels.event_labels.distance_from_explosion_m][station_idx]
 
         title_line2 = (f"\nDistance from source: {int(dist_m)} m, scaled distance: "
-                       f"{self.data[self.labels.scaled_distance][station_idx]:.2f} m/kg^(1/3)")
+                       f"{self.data[self.labels.event_labels.scaled_distance][station_idx]:.2f} m/kg^(1/3)")
 
         self.fig.suptitle(f"Normalized signals from {title_header}{title_line2}", fontsize=self.font_size + 2)
         self.plot_sensor_data(station_idx, s_type="base")
         self.touch_up_plot(start_audio_ts, end_audio_ts, "base")
-        
-        start_amb_ts = self.data[self.labels.ambient_microphone_time_s][station_idx][0]
-        end_amb_ts = self.data[self.labels.ambient_microphone_time_s][station_idx][-1] - start_amb_ts
+
+        start_amb_ts = self.data[self.labels.event_labels.ambient_microphone_time_s][station_idx][0]
+        end_amb_ts = self.data[self.labels.event_labels.ambient_microphone_time_s][station_idx][-1] - start_amb_ts
         self.plot_sensor_data(station_idx, s_type="ambient")
         self.touch_up_plot(0, end_amb_ts, "ambient")
 

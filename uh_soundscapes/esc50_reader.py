@@ -15,7 +15,7 @@ from scipy import signal
 
 from uh_soundscapes.data_processing import rolling_mean
 import uh_soundscapes.dataset_reader as dsr
-from uh_soundscapes.standard_labels import ESC50Labels
+from uh_soundscapes.standard_labels import ESC50Labels, StandardLabels
 
 TUTORIAL_PICKLE_FILE_NAME_800HZ = "ESC50_800Hz.pkl"
 TUTORIAL_PICKLE_FILE_NAME_16KHZ = "ESC50_16kHz.pkl"
@@ -29,6 +29,21 @@ PKL_FILE_NAME = "ESC50_CHANGEME.pkl"  # Replace with actual file name
 PATH_TO_PKL = os.path.join(PKL_DIRECTORY, PKL_FILE_NAME)
 
 
+class ESC50DatasetLabels(dsr.DatasetLabels):
+    """
+    A class containing the column names used in ESC-50.
+
+    Inherits from DatasetLabels and uses ESC50Labels for column names.
+    """
+    def __init__(self, el: ESC50Labels = ESC50Labels(), stl: StandardLabels = StandardLabels()):
+        """
+        Initialize the ESC50DatasetLabels with the column names used in ESC-50.
+
+        :param el: ESC50Labels class with all the ESC-50 label names.
+        """
+        super().__init__(el, stl)
+
+
 class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
     """
     A class to read and analyze the ESC50 dataset.
@@ -37,9 +52,10 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
     """
     def __init__(self, input_path: str, default_filename: str, show_frequency_plots: bool = True, 
                  save_path: str = ".", subplots_rows: int = 2, subplots_cols: int = 1, 
-                 fig_size: Tuple[int, int] = (10, 7)) -> None:
+                 fig_size: Tuple[int, int] = (10, 7), esc50_labels: ESC50Labels = ESC50Labels(), 
+                 standard_labels: StandardLabels = StandardLabels()) -> None:
         """
-        Initialize the SHAReDReader with the path to the dataset.
+        Initialize the ESC50Reader with the path to the dataset.
 
         :param input_path: path to the dataset file
         :param default_filename: default filename to use if the input file is not found
@@ -49,7 +65,8 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         :param subplots_cols: Number of columns in the subplot grid. Default is 1
         :param fig_size: Tuple of (width, height) for the figure size. Default is (10, 7).
         """
-        dsr.DatasetReader.__init__(self, "ESC50", input_path, default_filename, ESC50Labels(), save_path)
+        dsr.DatasetReader.__init__(self, "ESC50", input_path, default_filename, 
+                                   ESC50DatasetLabels(esc50_labels, standard_labels), save_path)
         dsr.PlotBase.__init__(self, fig_size, subplots_rows, subplots_cols)
         self.show_frequency_plots = show_frequency_plots
         self.sample_rate = 0.
@@ -59,7 +76,7 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         Load the ESC-50 dataset from the input_path.
         """
         super().load_data()
-        self.sample_rate = int(self.data[self.labels.audio_fs].iloc[0])
+        self.sample_rate = int(self.data[self.labels.event_labels.audio_fs].iloc[0])
 
     def print_metadata(self):
         """
@@ -68,7 +85,7 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         print(f"\nESC-50 dataset at {self.sample_rate}Hz:\n")
         # get some details about the dataset and print them out
         n_signals = len(self.data)
-        n_clips = len(np.unique(self.data[self.labels.event_id]))
+        n_clips = len(np.unique(self.data[self.get_event_id_col()]))
         print(f"\tThis dataset contains {n_signals} 5 s long samples from {n_clips} different Freesound audio clips.\n")
         print(f"\tEach of the {n_signals} rows in the pandas DataFrame contains an audio waveform, the ID number of")
         print(f"\tthe Freesound clip it was taken from, the sampling frequency the audio was downsampled to, the")
@@ -86,7 +103,7 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         :param idx: Index of the sample in the dataset.
         :return: The waveform as a NumPy array.
         """
-        return self.data[self.labels.audio_data][self.data.index[idx]]
+        return self.data[self.labels.event_labels.audio_data][self.data.index[idx]]
 
     def plot_event(self, wf_timestamps: np.ndarray, sample_waveform: np.ndarray, freqs: np.ndarray, psd: np.ndarray):
         """
@@ -123,15 +140,15 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         :param idx: Index of the sample in the dataset.
         """
         sample_idx = self.data.index[idx]
-        sample_fs = self.data[self.labels.audio_fs][sample_idx]
+        sample_fs = self.data[self.labels.event_labels.audio_fs][sample_idx]
         sample_waveform = self.get_sample_waveform(idx)
-        time_array = np.arange(len(self.data[self.labels.audio_data][sample_idx])) / sample_fs
+        time_array = np.arange(len(self.data[self.labels.event_labels.audio_data][sample_idx])) / sample_fs
         # We'll demean and normalize the waveform to the range [-1, 1] for cleaner visualization.
         sample_waveform = sample_waveform - rolling_mean(sample_waveform, window_size=13)
         sample_waveform = sample_waveform / np.nanmax(np.abs(sample_waveform))
         # We'll also extract the true class and the class predicted by YAMNet for this sample to add to the plot title.
-        sample_esc50_class = self.data[self.labels.esc50_true_class][sample_idx]
-        sample_yamnet_class = self.data[self.labels.yamnet_predicted_class][sample_idx]
+        sample_esc50_class = self.data[self.labels.event_labels.esc50_true_class][sample_idx]
+        sample_yamnet_class = self.data[self.labels.event_labels.yamnet_predicted_class][sample_idx]
 
         # calculate and plot the Welch power spectral density (PSD)
         nperseg = self.sample_rate * 0.48  # 0.48 seconds per segment

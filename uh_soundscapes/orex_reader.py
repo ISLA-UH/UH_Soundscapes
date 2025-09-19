@@ -17,7 +17,7 @@ from quantum_inferno.utilities.rescaling import to_log2_with_epsilon
 
 import uh_soundscapes.dataset_reader as dsr
 from uh_soundscapes.data_processing import max_norm
-from uh_soundscapes.standard_labels import OREXLabels
+from uh_soundscapes.standard_labels import OREXLabels, StandardLabels
 
 
 PICKLE_FILE_NAME = "OREX_UH_800Hz.pkl"
@@ -25,20 +25,43 @@ PICKLE_DIR = os.getcwd()
 PATH_TO_PKL = os.path.join(PICKLE_DIR, PICKLE_FILE_NAME)
 
 
+class OREXDatasetLabels(dsr.DatasetLabels):
+    """
+    A class containing the column names used in OREX.
+
+    Inherits from DatasetLabels and uses OREXLabels for column names.
+    """
+    def __init__(self, ol: OREXLabels = OREXLabels(), stl: StandardLabels = StandardLabels()):
+        """
+        Initialize the OREXDatasetLabels with the column names used in OREX.
+
+        :param ol: OREXLabels class with all the OREX label names.
+        """
+        super().__init__(ol, stl)
+
+
 class OREXReader(dsr.DatasetReader, dsr.PlotBase):
     """
     A class to read and analyze the OREX dataset.
     """
     def __init__(self, input_path: str, input_filename: str, show_frequency_plots: bool = True, save_path: str = ".",
-                 fig_size: Tuple[int, int] = (10, 7)) -> None:
+                 fig_size: Tuple[int, int] = (10, 7), orex_labels: OREXLabels = OREXLabels(), 
+                 standard_labels: StandardLabels = StandardLabels()) -> None:
         """
         Initialize the OREX reader.
 
         :param input_path: str, path to the dataset file.
         :param input_filename: str, name of the input file.
+        :param show_frequency_plots: if True, display frequency plots. Default True.
+        :param save_path: path to save the processed data. Default current directory.
+        :param fig_size: Tuple of (width, height) for the figure size. Default is (10, 7).
+        :param orex_labels: OREXLabels instance that lists all the OREX label names.  Default OREXLabels().
+        :param standard_labels: StandardLabels instance that lists all the standardized label names.
+                                Default StandardLabels().
         """
         # initialize the parent classes
-        dsr.DatasetReader.__init__(self, "OREX", input_path, input_filename, OREXLabels(), save_path)
+        dsr.DatasetReader.__init__(self, "OREX", input_path, input_filename, 
+                                   OREXDatasetLabels(orex_labels, standard_labels), save_path)
         dsr.PlotBase.__init__(self, fig_size)
         self.show_frequency_plots = show_frequency_plots
 
@@ -80,17 +103,17 @@ class OREXReader(dsr.DatasetReader, dsr.PlotBase):
         """
         self.y_adj_buff -= 0.2
         for station in self.data.index:
-            sig_wf = self.data[self.labels.audio_data][station]
+            sig_wf = self.data[self.labels.event_labels.audio_data][station]
             sig_wf = max_norm(sig_wf)
-            sig_epoch_s = self.data[self.labels.audio_epoch_s][station]
+            sig_epoch_s = self.data[self.labels.event_labels.audio_epoch_s][station]
             sig_epoch_s = sig_epoch_s - sig_epoch_s[0]
-            self.plot_single_event(self.data[self.labels.station_label][station], sig_epoch_s, sig_wf)
-            self.y_adj += self.y_adj_buff
+            self.plot_single_event(self.data[self.labels.event_labels.station_label][station], sig_epoch_s, sig_wf)
+            self.y_adj += int(self.y_adj_buff)
             if self.show_frequency_plots:
                 self.plot_spectrogram(
                     timestamps=sig_epoch_s,
                     data=sig_wf,
-                    label=self.data[self.labels.station_label][station])
+                    label=self.data[self.labels.event_labels.station_label][station])
         self.touch_up_plot("Time (s) relative to signal", "OSIRIS-REx UH ISLA RedVox Signals")
 
     def plot_spectrogram(self, timestamps: np.ndarray, data: np.ndarray, label: str):

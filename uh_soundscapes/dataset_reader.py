@@ -181,6 +181,17 @@ class DatasetReader:
         :return: Unique event IDs and their counts in the dataset.
         """
         return np.unique(self.data[self.get_event_id_col()], return_counts=True)
+    
+    def standardize_df_columns(self) -> pd.DataFrame:
+        """
+        Standardize the columns of the data using a label mapping dictionary.
+
+        :return: pandas DataFrame with standardized column names
+        """
+        for col in self.data.columns:
+            if col in self.labels.event_labels.standardize_dict.keys():
+                self.data.rename(columns={col: self.labels.event_labels.standardize_dict[col]}, inplace=True)
+        return self.data
 
     def compile_metadata(self, index_column: str, metadata_columns: list) -> pd.DataFrame:
         """

@@ -415,17 +415,3 @@ class OREXLabels(EventLabels):
             self.station_lat: standard_labels.station_lat,
             self.station_lon: standard_labels.station_lon,
             self.station_alt: standard_labels.station_alt}
-
-
-def standardize_df_columns(dataset: pd.DataFrame, label_map: dict) -> pd.DataFrame:
-    """
-    Standardize the columns of a pandas DataFrame using a label mapping dictionary.
-
-    :param dataset: pandas DataFrame of dataset with original column names
-    :param label_map: dictionary mapping original column names to standard column names
-    :return: pandas DataFrame with standardized column names
-    """
-    for col in dataset.columns:
-        if col in label_map.keys():
-            dataset.rename(columns={col: label_map[col]}, inplace=True)
-    return dataset

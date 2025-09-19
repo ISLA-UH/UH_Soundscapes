@@ -139,11 +139,11 @@ class ASTRAReader(dsr.DatasetReader, dsr.PlotBase):
         len_data = len(self.data)
         print(f"This dataset contains {len_data} recording{'s' if len_data != 1 else ''} "
               f"from {num_ids} unique launch event{'s' if num_ids != 1 else ''}.")
-        metadata_df = self.compile_metadata(self.labels.event_labels.launch_id, self.labels.event_labels.event_metadata)
+        # metadata_df = self.compile_metadata(self.labels.event_labels.launch_id, self.labels.event_labels.event_metadata)
         for launch_id, count in zip(unique_id_counts[0], unique_id_counts[1]):
-            launch_df = self.data[self.data[metadata_df.launch_id] == launch_id]
-            rocket_type = launch_df[metadata_df.rocket_type][launch_df.index[0]]
-            launch_date = launch_df[metadata_df.reported_launch_epoch_s][launch_df.index[0]]
+            launch_df = self.data[self.data[self.labels.event_labels.launch_id] == launch_id]
+            rocket_type = launch_df[self.labels.event_labels.rocket_type][launch_df.index[0]]
+            launch_date = launch_df[self.labels.event_labels.reported_launch_epoch_s][launch_df.index[0]]
             date_string = (datetime.fromtimestamp(launch_date, tz=timezone.utc)).strftime("%d %b %Y")
             print(f"\t{rocket_type} launch {launch_id} on {date_string}: {count} recording(s)")
 
