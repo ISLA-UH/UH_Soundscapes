@@ -8,7 +8,6 @@ IDE note: inherited classes aren't properly recognized, so the IDE may not recog
 
 """
 from datetime import datetime, timezone
-import os
 from typing import List, Optional, Tuple
 
 import matplotlib.pyplot as plt
@@ -17,11 +16,6 @@ import numpy as np
 import uh_soundscapes.dataset_reader as dsr
 import uh_soundscapes.data_processing as dp
 from uh_soundscapes.standard_labels import ASTRALabels, StandardLabels
-
-TUTORIAL_PICKLE_FILE_NAME = "ASTRA.pkl"
-CURRENT_DIRECTORY = "/Users/tyler/Downloads/soundscapes_data/"
-PATH_TO_TUTORIAL_PKL = os.path.join(CURRENT_DIRECTORY, TUTORIAL_PICKLE_FILE_NAME)
-PATH_TO_PKL = PATH_TO_TUTORIAL_PKL
 
 
 class ASTRADatasetLabels(dsr.DatasetLabels):
@@ -46,14 +40,13 @@ class ASTRAReader(dsr.DatasetReader, dsr.PlotBase):
     Inherits from DatasetReader and PlotBase and uses ASTRALabels for column names.
     """
 
-    def __init__(self, input_path: str, default_filename: str, show_frequency_plots: bool = True,
-                 save_path: str = ".", fig_size: Tuple[int, int] = (10, 7), 
-                 astra_labels: ASTRALabels = ASTRALabels(), standard_labels: StandardLabels = StandardLabels()):
+    def __init__(self, input_path: str, show_frequency_plots: bool = True, save_path: str = ".", 
+                 fig_size: Tuple[int, int] = (10, 7), astra_labels: ASTRALabels = ASTRALabels(), 
+                 standard_labels: StandardLabels = StandardLabels()):
         """
         Initialize the ASTRAReader with the path to the dataset.
 
         :param input_path: path to the dataset file
-        :param default_filename: default filename to use if the input file is not found
         :param show_frequency_plots: if True, display frequency plots. Default True.
         :param save_path: path to save the processed data. Default current directory.
         :param fig_size: Tuple of (width, height) for the figure size. Default is (10, 7).
@@ -62,7 +55,7 @@ class ASTRAReader(dsr.DatasetReader, dsr.PlotBase):
                                 Default StandardLabels().
         """
         # initialize the parent classes
-        dsr.DatasetReader.__init__(self, "ASTRA", input_path, default_filename, 
+        dsr.DatasetReader.__init__(self, "ASTRA", input_path, 
                                    ASTRADatasetLabels(astra_labels, standard_labels), save_path)
         dsr.PlotBase.__init__(self, fig_size)
         self.show_frequency_plots = show_frequency_plots
@@ -260,11 +253,3 @@ class ASTRAReader(dsr.DatasetReader, dsr.PlotBase):
         if self.show_frequency_plots:
             self.plot_tfr(f"CWT and waveform from launch {launch_id}", station_id, fs, relative_time, audio_data)
         self.touch_up_plot(xlabel, title)
-
-
-if __name__ == "__main__":
-    ar = ASTRAReader(PATH_TO_PKL, TUTORIAL_PICKLE_FILE_NAME)
-    ar.load_data()
-    ar.print_metadata()
-    ar.plot_recording()
-    plt.show()

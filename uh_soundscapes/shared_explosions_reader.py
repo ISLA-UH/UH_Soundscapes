@@ -6,7 +6,6 @@ The files can be downloaded from https://www.higp.hawaii.edu/archive/isla/UH_Sou
 IDE note: inherited classes aren't properly recognized, so the IDE may not recognize
             some properties or methods.
 """
-import os
 from typing import Tuple
 
 import matplotlib.pyplot as plt
@@ -15,11 +14,6 @@ import numpy as np
 from uh_soundscapes.data_processing import demean_norm
 import uh_soundscapes.dataset_reader as dsr
 from uh_soundscapes.standard_labels import SHAReDLabels, StandardLabels
-
-TUTORIAL_PICKLE_FILE_NAME = "SHAReD.pkl"
-CURRENT_DIRECTORY = "/Users/tyler/Downloads/soundscapes_data/"
-PATH_TO_TUTORIAL_PKL = os.path.join(CURRENT_DIRECTORY, TUTORIAL_PICKLE_FILE_NAME)
-PATH_TO_PKL = PATH_TO_TUTORIAL_PKL
 
 
 class SHAReDDatasetLabels(dsr.DatasetLabels):
@@ -43,14 +37,13 @@ class SHAReDReader(dsr.DatasetReader, dsr.PlotBase):
 
     Inherits from DatasetReader and uses SHAReDLabels for column names.
     """
-    def __init__(self, input_path: str, default_filename: str, save_path: str = ".", subplots_rows: int = 3, 
-                 subplots_cols: int = 2, fig_size: Tuple[int, int] = (10, 7), 
-                 shared_labels: SHAReDLabels = SHAReDLabels(), standard_labels: StandardLabels = StandardLabels()):
+    def __init__(self, input_path: str, save_path: str = ".", subplots_rows: int = 3, subplots_cols: int = 2, 
+                 fig_size: Tuple[int, int] = (10, 7), shared_labels: SHAReDLabels = SHAReDLabels(), 
+                 standard_labels: StandardLabels = StandardLabels()):
         """
         Initialize the SHAReDReader with the path to the dataset.
 
         :param input_path: path to the dataset file
-        :param default_filename: default filename to use if the input file is not found
         :param show_info: if True, display dataset information. Default True.
         :param show_waveform_plots: if True, display waveform plots. Default True.
         :param show_frequency_plots: if True, display frequency plots. Default True.
@@ -63,7 +56,7 @@ class SHAReDReader(dsr.DatasetReader, dsr.PlotBase):
         :param standard_labels: StandardLabels instance that lists all the standardized label names. 
                                 Default StandardLabels().
         """
-        dsr.DatasetReader.__init__(self, "SHAReD Explosions", input_path, default_filename, 
+        dsr.DatasetReader.__init__(self, "SHAReD Explosions", input_path, 
                                    SHAReDDatasetLabels(shared_labels, standard_labels), save_path)
         dsr.PlotBase.__init__(self, fig_size, subplots_rows, subplots_cols)
 
@@ -206,11 +199,3 @@ class SHAReDReader(dsr.DatasetReader, dsr.PlotBase):
         end_amb_ts = self.data[self.labels.event_labels.ambient_microphone_time_s][station_idx][-1] - start_amb_ts
         self.plot_sensor_data(station_idx, s_type="ambient")
         self.touch_up_plot(0, end_amb_ts, "ambient")
-
-
-if __name__=="__main__":
-    ar = SHAReDReader(PATH_TO_PKL, TUTORIAL_PICKLE_FILE_NAME)
-    ar.load_data()
-    ar.print_metadata()
-    ar.plot_data()
-    plt.show()

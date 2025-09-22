@@ -6,7 +6,6 @@ The files can be downloaded from https://www.higp.hawaii.edu/archive/isla/UH_Sou
 IDE note: inherited classes aren't properly recognized, so the IDE may not recognize
             some properties or methods.
 """
-import os
 from typing import Tuple
 
 import matplotlib.pyplot as plt
@@ -16,17 +15,6 @@ from scipy import signal
 from uh_soundscapes.data_processing import rolling_mean
 import uh_soundscapes.dataset_reader as dsr
 from uh_soundscapes.standard_labels import ESC50Labels, StandardLabels
-
-TUTORIAL_PICKLE_FILE_NAME_800HZ = "ESC50_800Hz.pkl"
-TUTORIAL_PICKLE_FILE_NAME_16KHZ = "ESC50_16kHz.pkl"
-CURRENT_DIRECTORY = os.getcwd()
-PATH_TO_TUTORIAL_PKL_800HZ = os.path.join(CURRENT_DIRECTORY, TUTORIAL_PICKLE_FILE_NAME_800HZ)
-PATH_TO_TUTORIAL_PKL_16KHZ = os.path.join(CURRENT_DIRECTORY, TUTORIAL_PICKLE_FILE_NAME_16KHZ)
-PATH_TO_PKL_800HZ = PATH_TO_TUTORIAL_PKL_800HZ
-PATH_TO_PKL_16KHZ = PATH_TO_TUTORIAL_PKL_16KHZ
-PKL_DIRECTORY = "/DIRECTORY/WITH/PKL/FILE"  # Replace with actual path, also used as output path
-PKL_FILE_NAME = "ESC50_CHANGEME.pkl"  # Replace with actual file name
-PATH_TO_PKL = os.path.join(PKL_DIRECTORY, PKL_FILE_NAME)
 
 
 class ESC50DatasetLabels(dsr.DatasetLabels):
@@ -50,22 +38,20 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
 
     Inherits from DatasetReader and uses ESC50Labels for column names.
     """
-    def __init__(self, input_path: str, default_filename: str, show_frequency_plots: bool = True, 
-                 save_path: str = ".", subplots_rows: int = 2, subplots_cols: int = 1, 
-                 fig_size: Tuple[int, int] = (10, 7), esc50_labels: ESC50Labels = ESC50Labels(), 
-                 standard_labels: StandardLabels = StandardLabels()) -> None:
+    def __init__(self, input_path: str, show_frequency_plots: bool = True, save_path: str = ".", 
+                 subplots_rows: int = 2, subplots_cols: int = 1, fig_size: Tuple[int, int] = (10, 7), 
+                 esc50_labels: ESC50Labels = ESC50Labels(), standard_labels: StandardLabels = StandardLabels()):
         """
         Initialize the ESC50Reader with the path to the dataset.
 
         :param input_path: path to the dataset file
-        :param default_filename: default filename to use if the input file is not found
         :param show_frequency_plots: if True, display frequency plots. Default True.
         :param save_path: path to save the processed data. Default current directory.
         :param subplots_rows: Number of rows in the subplot grid. Default is 1.
         :param subplots_cols: Number of columns in the subplot grid. Default is 1
         :param fig_size: Tuple of (width, height) for the figure size. Default is (10, 7).
         """
-        dsr.DatasetReader.__init__(self, "ESC50", input_path, default_filename, 
+        dsr.DatasetReader.__init__(self, "ESC50", input_path, 
                                    ESC50DatasetLabels(esc50_labels, standard_labels), save_path)
         dsr.PlotBase.__init__(self, fig_size, subplots_rows, subplots_cols)
         self.show_frequency_plots = show_frequency_plots
@@ -169,17 +155,3 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
             print(f"\tPlotting the PSD of sample {sample_idx} from the {self.sample_rate} Hz ESC-50 dataset...\n")
             tfr_title = f"CWT and waveform from ESC-50 PKL index {sample_idx} (clip ID {self.get_event_id_col()})"
             _ = self.plot_tfr(tfr_title, "", sample_fs, time_array, sample_waveform)
-
-
-if __name__=="__main__":
-    import random
-    esc800 = ESC50Reader(PATH_TO_PKL_800HZ, TUTORIAL_PICKLE_FILE_NAME_800HZ)
-    esc16k = ESC50Reader(PATH_TO_PKL_16KHZ, TUTORIAL_PICKLE_FILE_NAME_16KHZ)
-    esc800.load_data()
-    esc16k.load_data()
-    esc800.print_metadata()
-    esc16k.print_metadata()
-    index_to_plot = random.randint(0, len(esc16k.data) - 1)
-    esc800.plot_waveforms(index_to_plot)
-    esc16k.plot_waveforms(index_to_plot)
-    plt.show()

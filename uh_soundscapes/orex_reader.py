@@ -5,7 +5,6 @@ OREX example is simple enough that it doesn't need to inherit from the dataset_r
 
 The files can be downloaded from https://www.higp.hawaii.edu/archive/isla/UH_Soundscapes/OREX/
 """
-import os
 from typing import Tuple
 
 import matplotlib.pyplot as plt
@@ -18,11 +17,6 @@ from quantum_inferno.utilities.rescaling import to_log2_with_epsilon
 import uh_soundscapes.dataset_reader as dsr
 from uh_soundscapes.data_processing import max_norm
 from uh_soundscapes.standard_labels import OREXLabels, StandardLabels
-
-
-PICKLE_FILE_NAME = "OREX_UH_800Hz.pkl"
-PICKLE_DIR = os.getcwd()
-PATH_TO_PKL = os.path.join(PICKLE_DIR, PICKLE_FILE_NAME)
 
 
 class OREXDatasetLabels(dsr.DatasetLabels):
@@ -44,14 +38,13 @@ class OREXReader(dsr.DatasetReader, dsr.PlotBase):
     """
     A class to read and analyze the OREX dataset.
     """
-    def __init__(self, input_path: str, input_filename: str, show_frequency_plots: bool = True, save_path: str = ".",
+    def __init__(self, input_path: str, show_frequency_plots: bool = True, save_path: str = ".",
                  fig_size: Tuple[int, int] = (10, 7), orex_labels: OREXLabels = OREXLabels(), 
                  standard_labels: StandardLabels = StandardLabels()) -> None:
         """
         Initialize the OREX reader.
 
         :param input_path: str, path to the dataset file.
-        :param input_filename: str, name of the input file.
         :param show_frequency_plots: if True, display frequency plots. Default True.
         :param save_path: path to save the processed data. Default current directory.
         :param fig_size: Tuple of (width, height) for the figure size. Default is (10, 7).
@@ -60,7 +53,7 @@ class OREXReader(dsr.DatasetReader, dsr.PlotBase):
                                 Default StandardLabels().
         """
         # initialize the parent classes
-        dsr.DatasetReader.__init__(self, "OREX", input_path, input_filename, 
+        dsr.DatasetReader.__init__(self, "OREX", input_path, 
                                    OREXDatasetLabels(orex_labels, standard_labels), save_path)
         dsr.PlotBase.__init__(self, fig_size)
         self.show_frequency_plots = show_frequency_plots
@@ -153,9 +146,3 @@ class OREXReader(dsr.DatasetReader, dsr.PlotBase):
         mesh_base = ptb.MeshBase(timestamps, frequency_stx_hz, frequency_hz_ymin=fmin_plot, frequency_hz_ymax=fmax_plot)
         mesh_panel = ptb.MeshPanel(mic_stx_bits, colormap_scaling="range", cbar_units="log$_2$(Power)")
         stx = plot_mesh_wf_vert(mesh_base, mesh_panel, wf_base, wf_panel)
-
-
-if __name__=="__main__":
-    orx = OREXReader(PATH_TO_PKL, PICKLE_FILE_NAME)
-    orx.plot_all()
-    plt.show()

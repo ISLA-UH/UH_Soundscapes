@@ -124,7 +124,7 @@ class DatasetReader:
 
         save_path: str, path to save the processed data. Default current directory.
     """
-    def __init__(self, dataset_name: str, input_path: str, default_filename: str, dataset_labels: DatasetLabels,
+    def __init__(self, dataset_name: str, input_path: str, dataset_labels: DatasetLabels,
                  save_path: str = os.getcwd()):
         """
         Initialize the DatasetReader with the path to the dataset.
@@ -132,12 +132,10 @@ class DatasetReader:
         :param dataset_name: name of the dataset
         :param input_path: path to the dataset file
         :param dataset_labels: DatasetLabels instance containing labels for the dataset
-        :param default_filename: default filename to use if the input file is not found
         :param save_path: path to save the processed data. Default current directory.
         """
         self.dataset_name: str = dataset_name
         self.input_path: str = input_path
-        self.default_filename: str = default_filename
         self.labels: DatasetLabels = dataset_labels
         self.save_path: str = save_path
 
@@ -155,9 +153,7 @@ class DatasetReader:
         Load the dataset from the input_path.
         """
         if not os.path.exists(self.input_path) and not os.path.isfile(self.input_path):
-            print(f"WARNING: {self.dataset_name} dataset pickle file not found at: {self.input_path}")
-            print(f"Using the subset of {self.dataset_name} included with this tutorial instead.")
-            self.input_path = os.path.join(os.path.dirname(__file__), self.default_filename)
+            raise FileNotFoundError(f"WARNING: {self.dataset_name} dataset pickle file not found at: {self.input_path}")
         try:
             self.data = pd.read_pickle(self.input_path)
         except Exception as e:
