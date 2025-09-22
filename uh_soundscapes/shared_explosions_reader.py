@@ -44,10 +44,6 @@ class SHAReDReader(dsr.DatasetReader, dsr.PlotBase):
         Initialize the SHAReDReader with the path to the dataset.
 
         :param input_path: path to the dataset file
-        :param show_info: if True, display dataset information. Default True.
-        :param show_waveform_plots: if True, display waveform plots. Default True.
-        :param show_frequency_plots: if True, display frequency plots. Default True.
-        :param save_data: if True, save the processed data to a file. Default True.
         :param save_path: path to save the processed data. Default current directory.
         :param subplots_rows: number of rows in the subplots. Default is 3.
         :param subplots_cols: number of columns in the subplots. Default is 2.

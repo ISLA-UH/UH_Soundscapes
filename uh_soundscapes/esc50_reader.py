@@ -55,7 +55,6 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
                                    ESC50DatasetLabels(esc50_labels, standard_labels), save_path)
         dsr.PlotBase.__init__(self, fig_size, subplots_rows, subplots_cols)
         self.show_frequency_plots = show_frequency_plots
-        self.sample_rate = 0.
 
     def load_data(self):
         """
@@ -90,16 +89,6 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         :return: The waveform as a NumPy array.
         """
         return self.data[self.labels.event_labels.audio_data][self.data.index[idx]]
-
-    def plot_event(self, wf_timestamps: np.ndarray, sample_waveform: np.ndarray, freqs: np.ndarray, psd: np.ndarray):
-        """
-        Plot the waveform and power spectral density (PSD) of an event.
-
-        :param wf_timestamps: Timestamps corresponding to the waveform.
-        :param sample_waveform: The waveform data as a NumPy array.
-        :param freqs: Frequencies for the PSD plot.
-        :param psd: Power spectral density values corresponding to the frequencies.
-        """
 
     def touch_up_plot(self, xlabel: str, title: str, sample_rate: float, ax1_ymax: float):
         """
