@@ -80,23 +80,28 @@ class SHAReDReader(dsr.DatasetReader, dsr.PlotBase):
         """
         Print the data for each event in the dataset.
         """
-        for event_id, count in np.unique(self.data[self.labels.event_labels.event_id], return_counts=True):
-            event_df = self.data[self.data[self.labels.event_labels.event_id] == event_id]
+        print("All events:")
+        for event_idn in np.unique(self.data[self.labels.event_labels.event_id_number]):
+            event_df = self.data[self.data[self.labels.event_labels.event_id_number] == event_idn]
             eq_yield = event_df[self.labels.event_labels.source_yield_kg][event_df.index[0]]
-            print(f"\tEvent {event_id}: {eq_yield} kg TNT eq. yield, {count} recording(s)")
+            print(f"\tEvent {event_idn}: {eq_yield} kg TNT eq. yield, {len(event_df)} recording(s)")
 
-    def print_event_info(self, event_id: int):
+    def print_event_info(self, event_idn: int = None):
         """
         Print information about a specific event.
 
-        :param event_id: The unique ID number of the event to print information for.
+        :param event_idn: The unique ID number of the event to print information for.
         """
-        event_name = self.data[self.labels.event_labels.event_name][self.data.index[0]]
-        source_yield = self.data[self.labels.event_labels.source_yield_kg][self.data.index[0]]
-        smartphone_id = self.data[self.labels.event_labels.smartphone_id][self.data.index[0]]
-        dist_m = self.data[self.labels.event_labels.distance_from_explosion_m][self.data.index[0]]
-        print(f"\nExample event name: {event_name}, event ID number: {event_id}")
-        print(f"{source_yield} kg TNT eq. detonation recorded by station {smartphone_id} at {round(dist_m)}m range.")
+        if event_idn is None:
+            event_idn = self.data[self.labels.event_labels.event_id_number].values[0]
+        event_stations = self.data[self.data[self.labels.event_labels.event_id_number] == event_idn].index
+        event_name = self.data[self.labels.event_labels.event_name][event_stations[0]]
+        source_yield = self.data[self.labels.event_labels.source_yield_kg][event_stations[0]]
+        print(f"\nEvent name: {event_name}, event ID number: {event_idn}, {source_yield} kg TNT eq. detonation")
+        for station in event_stations:
+            smartphone_id = self.data[self.labels.event_labels.smartphone_id][station]
+            dist_m = self.data[self.labels.event_labels.distance_from_explosion_m][station]
+            print(f"\tRecorded by station {smartphone_id} at {round(dist_m)}m range.")
 
     def touch_up_plot(self, xmin: float, xmax: float, s_type: str = "base"):
         """
@@ -128,7 +133,7 @@ class SHAReDReader(dsr.DatasetReader, dsr.PlotBase):
         """
         Plot sensor data for a specific station.  Uses the s_type to determine which sensors to plot.
 
-        :param station_index: Index of the station to plot data for.
+        :param station_idx: Index of the station to plot data for.
         :param s_type: Sensor classification type.  Options are "base" and "ambient".  Default "base".
                         Unrecognized options will default to "base".
         """
