@@ -44,6 +44,7 @@ class PlotBase:
             self.fig, self.ax = plt.subplots(nrows=nrows, ncols=ncols, figsize=self.fig_size)
         else:
             self.fig, self.ax = plt.subplots(figsize=self.fig_size)
+        self.n_children_base = len(self.ax.get_children())
 
     def plot_tfr(self, tfr_title: str, station_id: str, fs: float, timestamps: np.ndarray, data: np.ndarray) -> Figure:
         """

@@ -60,6 +60,14 @@ class ASTRAReader(dsr.DatasetReader, dsr.PlotBase):
         dsr.PlotBase.__init__(self, fig_size)
         self.show_frequency_plots = show_frequency_plots
 
+    def new_figure(self, fig_size: Tuple[int, int] = None):
+        """
+        Create a new figure and Axes object for plotting.
+        """
+        if fig_size is None:
+            fig_size = self.fig_size
+        dsr.PlotBase.__init__(self, fig_size)
+
     def plot_vlines(self, x_coords: List[float], colors: List[str], line_styles: List[str], labels: List[str],
                     ylim: Tuple[Optional[float], Optional[float]] = (None, None)):
         """
@@ -70,6 +78,7 @@ class ASTRAReader(dsr.DatasetReader, dsr.PlotBase):
         :param colors: List of colors for the vertical lines.
         :param line_styles: List of line styles for the vertical lines.
         :param labels: List of labels for the vertical lines.
+        :param ylim: Tuple of (ymin, ymax) for the vertical lines.  If None, use base_ylim. Default (None, None).
         """
         if len(x_coords) != len(colors) or len(x_coords) != len(line_styles) or len(x_coords) != len(labels):
             raise ValueError("x_coords, colors, line_styles, and labels must have the same length.")
@@ -87,7 +96,7 @@ class ASTRAReader(dsr.DatasetReader, dsr.PlotBase):
                 lw=2,
             )
 
-    def plot_single_event(self, tick_label: str, timestamps: np.ndarray, data: np.ndarray):
+    def plot_waveform(self, tick_label: str, timestamps: np.ndarray, data: np.ndarray):
         """
         plot a single event using the Axes object.
 
@@ -116,7 +125,7 @@ class ASTRAReader(dsr.DatasetReader, dsr.PlotBase):
         self.ax.yaxis.set_ticklabels(self.tick_labels)
         self.ax.tick_params(axis="y", labelsize="large")
         self.ax.tick_params(axis="x", which="both", bottom=True, labelbottom=True, labelsize="large")
-        handles, labels = plt.gca().get_legend_handles_labels()
+        handles, labels = self.ax.get_legend_handles_labels()
         labels_dict = dict(zip(labels, handles))
         self.ax.legend(frameon=False, bbox_to_anchor=(.99, .99), loc='upper right', fontsize=self.font_size,
                        handles=labels_dict.values(), labels=labels_dict.keys())
@@ -147,6 +156,8 @@ class ASTRAReader(dsr.DatasetReader, dsr.PlotBase):
         :param launch_id: launch ID string of the event to plot.  If empty or None, the first event in the 
                         dataset is plotted.  Default empty string.
         """
+        if len(self.ax.get_children()) > self.n_children_base:
+            self.new_figure()
         event_id = self.labels.get_event_id()
         if not launch_id:
             sorted_df = self.data.sort_values(by=event_id)
@@ -180,7 +191,7 @@ class ASTRAReader(dsr.DatasetReader, dsr.PlotBase):
             relative_time = relative_time[first_idx:]
             audio_data = audio_data[first_idx:]
             est_prop_distance_km = self.data[self.labels.event_labels.est_prop_dist_km][station]
-            self.plot_single_event(f"{round(est_prop_distance_km, 1)} km", relative_time, audio_data)
+            self.plot_waveform(f"{round(est_prop_distance_km, 1)} km", relative_time, audio_data)
             relative_start_toa_estimate = self.data[self.labels.event_labels.s_aligned_toa_est][station] - rep_launch_epoch_s
             relative_peak_toa_estimate = self.data[self.labels.event_labels.p_aligned_toa_est][station] - rep_launch_epoch_s
             v_labels = ["Start-aligned TOA estimate", "Peak-aligned TOA estimate"]
@@ -206,6 +217,8 @@ class ASTRAReader(dsr.DatasetReader, dsr.PlotBase):
         :param station_id: station ID string of the recording to plot.  If empty or None, the first station in 
                             the event is plotted.  Default empty string.
         """
+        if len(self.ax.get_children()) > self.n_children_base:
+            self.new_figure()
         if not launch_id:
             launch_id = self.data[self.labels.get_event_id()][self.data.index[0]]
         launch_df = self.data[self.data[self.labels.get_event_id()] == launch_id]
@@ -239,7 +252,7 @@ class ASTRAReader(dsr.DatasetReader, dsr.PlotBase):
         relative_time = relative_time[first_idx:]
         audio_data = audio_data[first_idx:]
         est_prop_distance_km = self.data[self.labels.event_labels.est_prop_dist_km][station]
-        self.plot_single_event(f"{round(est_prop_distance_km, 1)} km", relative_time, audio_data)
+        self.plot_waveform(f"{round(est_prop_distance_km, 1)} km", relative_time, audio_data)
         relative_start_toa_estimate = self.data[self.labels.event_labels.s_aligned_toa_est][station] - rep_launch_epoch_s
         relative_peak_toa_estimate = self.data[self.labels.event_labels.p_aligned_toa_est][station] - rep_launch_epoch_s
         v_labels = ["Start-aligned TOA estimate", "Peak-aligned TOA estimate"]
@@ -247,7 +260,8 @@ class ASTRAReader(dsr.DatasetReader, dsr.PlotBase):
             x_coords=[relative_start_toa_estimate, relative_peak_toa_estimate],
             colors=[sa_toa_color, pa_toa_color],
             line_styles=["-", "--"],
-            labels=v_labels
+            labels=v_labels,
+            ylim=(self.y_adj - 1, self.y_adj + 1),
         )
         station_id = f"{self.data[self.labels.event_labels.station_id][station]} ({est_prop_distance_km:.1f} km)"
         if self.show_frequency_plots:
