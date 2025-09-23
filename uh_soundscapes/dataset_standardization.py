@@ -6,6 +6,9 @@ Aggregated Smartphone Timeseries of Rocket-generated Acoustics (ASTRA)
 Smartphone High-explosive Audio Recordings Dataset (SHAReD)
 OSIRIS-REx UH ISLA hypersonic signals (OREX)
 Environmental sound classification dataset, fifty classes (ESC50).
+
+For an example on how to use the functions in this module, see
+https://github.com/ISLA-UH/UH_Soundscapes/blob/main/notebooks/dataset_fusion_tutorial.ipynb
 """
 import numpy as np
 import os

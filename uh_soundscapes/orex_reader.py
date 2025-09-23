@@ -1,9 +1,13 @@
 """
 OREX Reader Class
 
-OREX example is simple enough that it doesn't need to inherit from the dataset_reader classes.
-
 The files can be downloaded from https://www.higp.hawaii.edu/archive/isla/UH_Soundscapes/OREX/
+
+For an example on how to display metadata and plots, go to: 
+https://github.com/ISLA-UH/UH_Soundscapes/blob/main/notebooks/reader_tutorial.ipynb
+
+IDE note: inherited classes aren't properly recognized, so the IDE may not recognize
+            some properties or methods.
 """
 from typing import Tuple
 
