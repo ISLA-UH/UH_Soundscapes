@@ -23,6 +23,7 @@ def test_esc50_reader():
 def test_orex_reader():
     orex_path = "notebooks/OREX_tutorial.pkl"
     orex_ds = oxr.OREXReader(orex_path)
+    orex_ds.print_metadata()
     orex_ds.plot_all()
 
 

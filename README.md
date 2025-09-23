@@ -16,8 +16,9 @@ Main files in HIGP data repository [11]:
 # Installation
 Use pip:
 ```
-pip install uh-soundscapes
+pip install uh_soundscapes
 ```
+Please note that in order to run the Jupyter Notebooks included in this repository, you must install uh_soundscapes into the Notebook's python environment.
 
 
 # Overview of essential data fields included in the datasets:
@@ -25,7 +26,7 @@ pip install uh-soundscapes
   <tr>
     <th></th>
     <th>Signal source</th>
-<th>Signal duration</th>
+    <th>Signal duration</th>
     <th>Source locations included</th>
     <th>Station locations included</th>
   </tr>
@@ -117,3 +118,11 @@ Some dependencies may not install due to timeouts over VPNs or firewalls. To res
 pip --timeout=10000 install 'package_name'
 ```
 or any arbitrarily large number for the timeout value.
+
+
+## Jupyter Notebook Issues
+If the Jupyter Notebook is not recognizing uh_soundscapes imports, create a new python environment for the notebook to run on, and install uh_soundscapes via pip on the new environment.
+
+Jupyter Notebook runs on a virtual environment, so any local changes to the repository code will not be reflected in the Jupyter Notebook files.
+
+The test_readers.py and dataset_standardization.py files contain the same methods detailed in the reader_tutorial and dataset_fusion_tutorial notebooks, respectively.  If you are unable to run the notebooks, refer to those files for examples of function uses.

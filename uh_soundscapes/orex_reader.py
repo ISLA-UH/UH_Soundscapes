@@ -58,6 +58,19 @@ class OREXReader(dsr.DatasetReader, dsr.PlotBase):
         dsr.PlotBase.__init__(self, fig_size)
         self.show_frequency_plots = show_frequency_plots
 
+    def print_metadata(self):
+        """
+        Print metadata about the dataset.
+        """
+        print(f"This dataset contains recordings of the OSIRIS-REx atmospheric reentry from {len(self.data)} stations:")
+        for idx in self.data.index:
+            signal_length_s = self.data[self.labels.event_labels.audio_epoch_s][idx][-1] \
+                - self.data[self.labels.event_labels.audio_epoch_s][idx][0]
+            station_label = self.data[self.labels.event_labels.station_label][idx]
+            station_id = self.data[self.labels.event_labels.station_id][idx]
+            print(f"\nStation {station_id}:")
+            print(f"\tStation label: {station_label}\n\tSignal duration: {signal_length_s:.2f} s")
+
     def plot_single_event(self, tick_label: str, timestamps: np.ndarray, data: np.ndarray):
         """
         plot a single event using the Axes object.
