@@ -174,8 +174,14 @@ class SHAReDReader(dsr.DatasetReader, dsr.PlotBase):
                                demean_norm(self.data[labels[7]][station_idx]),
                                lw=1, label="z-axis", color=dsr.CBF_COLOR_CYCLE[2])
 
-    def plot_data(self):
-        station_idx = self.data.index[0]
+    def plot_data(self, station_idx: int = None):
+        """
+        Plot all the sensor data from the given index.
+        :param station_idx: index of the data to plot. If None, the first index is used.
+        :return:
+        """
+        if station_idx is None:
+            station_idx = self.data.index[0]
         event_name = self.data[self.labels.event_labels.event_name][station_idx]
         event_id = self.data[self.labels.get_event_id()][station_idx]
         station_id = self.data[self.labels.event_labels.smartphone_id][station_idx]
@@ -193,7 +199,8 @@ class SHAReDReader(dsr.DatasetReader, dsr.PlotBase):
         dist_m = self.data[self.labels.event_labels.distance_from_explosion_m][station_idx]
 
         title_line2 = (f"\nDistance from source: {int(dist_m)} m, scaled distance: "
-                       f"{self.data[self.labels.event_labels.scaled_distance][station_idx]:.2f} m/kg^(1/3)")
+                       f"{self.data[self.labels.event_labels.scaled_distance][station_idx]:.2f} "
+                       r"m/kg$^{1/3}$")
 
         self.fig.suptitle(f"Normalized signals from {title_header}{title_line2}", fontsize=self.font_size + 2)
         self.plot_sensor_data(station_idx, s_type="base")
