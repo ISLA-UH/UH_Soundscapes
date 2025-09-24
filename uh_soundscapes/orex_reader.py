@@ -66,18 +66,18 @@ class OREXReader(dsr.DatasetReader, dsr.PlotBase):
         """
         Print metadata about the dataset.
         """
-        print(f"This dataset contains recordings of the OSIRIS-REx atmospheric reentry from {len(self.data)} stations:")
+        print(f"This dataset contains recordings of the OSIRIS-REx atmospheric reentry from {len(self.data)} stations:\n")
         for idx in self.data.index:
             signal_length_s = self.data[self.labels.event_labels.audio_epoch_s][idx][-1] \
                 - self.data[self.labels.event_labels.audio_epoch_s][idx][0]
             station_label = self.data[self.labels.event_labels.station_label][idx]
             station_id = self.data[self.labels.event_labels.station_id][idx]
-            print(f"\nStation {station_id}:")
-            print(f"\tStation label: {station_label}\n\tSignal duration: {signal_length_s:.2f} s")
+            print(f"Station {station_id}:")
+            print(f"\tStation label: {station_label}, signal duration: {signal_length_s:.2f} s")
 
-    def plot_single_event(self, tick_label: str, timestamps: np.ndarray, data: np.ndarray):
+    def plot_waveform(self, tick_label: str, timestamps: np.ndarray, data: np.ndarray):
         """
-        plot a single event using the Axes object.
+        plot a single waveform using the Axes object.
 
         :param tick_label: Label for the y-tick corresponding to this event.
         :param timestamps: Timestamps corresponding to the data.
@@ -95,7 +95,7 @@ class OREXReader(dsr.DatasetReader, dsr.PlotBase):
         :param xlabel: Label for the x-axis.
         :param title: Title for the plot.
         """
-        self.ax.set(xlabel=xlabel, xlim=(0, self.t_max),
+        self.ax.set(xlabel=xlabel, xlim=(0., self.t_max),
                     ylim=(min(self.ticks) - 1.1 * self.y_adj_buff / 2,
                           max(self.ticks) + 1.1 * self.y_adj_buff / 2))
         self.ax.set_title(title, fontsize=self.font_size + 2)
@@ -117,14 +117,14 @@ class OREXReader(dsr.DatasetReader, dsr.PlotBase):
             sig_wf = max_norm(sig_wf)
             sig_epoch_s = self.data[self.labels.event_labels.audio_epoch_s][station]
             sig_epoch_s = sig_epoch_s - sig_epoch_s[0]
-            self.plot_single_event(self.data[self.labels.event_labels.station_label][station], sig_epoch_s, sig_wf)
+            self.plot_waveform(self.data[self.labels.event_labels.station_label][station], sig_epoch_s, sig_wf)
             self.y_adj += int(self.y_adj_buff)
             if self.show_frequency_plots:
                 self.plot_spectrogram(
                     timestamps=sig_epoch_s,
                     data=sig_wf,
                     label=self.data[self.labels.event_labels.station_label][station])
-        self.touch_up_plot("Time (s) relative to signal", "OSIRIS-REx UH ISLA RedVox Signals")
+        self.touch_up_plot("Time (s) relative to signal", "UH ISLA RedVox Acoustic Signals from OSIRIS-REx Reentry")
 
     def plot_spectrogram(self, timestamps: np.ndarray, data: np.ndarray, label: str):
         # Load curated stations sampled at 800 Hz
@@ -138,9 +138,9 @@ class OREXReader(dsr.DatasetReader, dsr.PlotBase):
         order_number_input: int = 3
 
         # Compute STX
-        data /= np.std(data)        # Unit variance
+        data_uvar = data / np.std(data)        # Unit variance
         [stx_complex, _, frequency_stx_hz, _, _] = tfr_stx_fft(
-            sig_wf=data,
+            sig_wf=data_uvar,
             time_sample_interval=1 / frequency_sample_rate_hz,
             frequency_min=frequency_resolution_fft_hz,
             frequency_max=frequency_sample_rate_hz / 2,
