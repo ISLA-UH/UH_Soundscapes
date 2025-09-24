@@ -111,12 +111,14 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         self.ax[0].set_ylabel("Normalized waveform", fontsize=self.font_size)
         plt.subplots_adjust()
 
-    def plot_waveforms(self, idx: int):
+    def plot_clip(self, idx: int = None):
         """
-        Plot the waveforms of the dataset at the given index.
+        Plot the ESC50 audio clip at the given index.
 
         :param idx: Index of the sample in the dataset.
         """
+        if idx is None:
+            sample_idx = self.data.index[0]
         sample_idx = self.data.index[idx]
         sample_fs = self.data[self.labels.event_labels.audio_fs][sample_idx]
         sample_waveform = self.get_sample_waveform(idx)
@@ -145,5 +147,6 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
 
         if self.show_frequency_plots:
             print(f"\tPlotting the PSD of sample {sample_idx} from the {self.sample_rate} Hz ESC-50 dataset...\n")
-            tfr_title = f"CWT and waveform from ESC-50 PKL index {sample_idx} (clip ID {self.get_event_id_col()})"
+            tfr_title = f"CWT and waveform from ESC-50 PKL index {sample_idx}"
+            tfr_title += f" (clip ID: {self.data[self.get_event_id_col()][sample_idx]})"
             _ = self.plot_tfr(tfr_title, "", sample_fs, time_array, sample_waveform)
