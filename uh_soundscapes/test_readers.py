@@ -17,7 +17,7 @@ def test_esc50_reader():
     esc_path = "notebooks/ESC50_tutorial_800Hz.pkl"
     esc800 = ecr.ESC50Reader(esc_path)
     esc800.print_metadata()
-    esc800.plot_waveforms(0)
+    esc800.plot_clip(0)
 
 
 def test_orex_reader():
