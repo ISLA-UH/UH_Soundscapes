@@ -35,8 +35,12 @@ def test_shared_reader():
 
 
 if __name__ == "__main__":
+    print("\n<0 ASTRA dataset reader test")
     test_astra_reader()
+    print("\n<0 ESC dataset reader test")
     test_esc50_reader()
+    print("\n<0 OREX dataset reader test")
     test_orex_reader()
+    print("\n<0 SHAReD dataset reader test")
     test_shared_reader()
     plt.show()
