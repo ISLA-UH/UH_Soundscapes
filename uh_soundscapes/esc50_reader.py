@@ -73,16 +73,28 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         print(f"\nESC-50 dataset at {self.sample_rate}Hz:\n")
         # get some details about the dataset and print them out
         n_signals = len(self.data)
-        n_clips = len(np.unique(self.data[self.get_event_id_col()]))
+        clips, counts = np.unique(self.data[self.get_event_id_col()].values, return_counts=True)
+        n_clips = len(clips)
         print(f"\tThis dataset contains {n_signals} 5 s long samples from {n_clips} different Freesound audio clips.\n")
         print(f"\tEach of the {n_signals} rows in the pandas DataFrame contains an audio waveform, the ID number of")
-        print(f"\tthe Freesound clip it was taken from, the sampling frequency the audio was downsampled to, the")
-        print(f"\tESC-50 class name and associated target class number, and the name of the top class predicted when")
+        print(f"\tthe Freesound clip it was taken from, the sample rate the audio was downsampled to, the ESC-50")
+        print(f"\tclass name and associated target class number, and the name of the top class predicted when")
         last_line = ("\tYAMNet is run on the sample")
         if self.sample_rate != 16000:
-            last_line += (f" (after upsampling from {self.sample_rate} to 16kHz)")
-        last_line += "\n"
+            last_line += (f" (after upsampling from {int(self.sample_rate)}Hz to 16kHz)")
+        last_line += " and the scores are meaned over the clip."
         print(last_line)
+        print(f"\nAll Freesound clips in the dataset, the sample(s) taken from them, and their class labels:")
+        for clip_id in clips:
+            clip_ds = self.data[self.data[self.get_event_id_col()] == clip_id]
+            classes, counts = np.unique(clip_ds[self.labels.event_labels.esc50_true_class], return_counts=True)
+            class_summary = f"\t{clip_id}            "[:15] + ": "
+            base_len = len(class_summary)
+            for class_name, class_count in zip(classes, counts):
+                if len(class_summary) > base_len:
+                    class_summary += "\n\t                                       "[:base_len + 1]
+                class_summary += f"'{class_name}'             "[:18] + f": {class_count} sample(s),"
+            print(class_summary[:-1])
 
     def get_sample_waveform(self, idx: int) -> np.ndarray:
         """
@@ -115,10 +127,10 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         """
         Plot the ESC50 audio clip at the given index.
 
-        :param idx: Index of the sample in the dataset.
+        :param idx: Index position of the sample in the dataset.
         """
         if idx is None:
-            sample_idx = self.data.index[0]
+            idx = 0
         sample_idx = self.data.index[idx]
         sample_fs = self.data[self.labels.event_labels.audio_fs][sample_idx]
         sample_waveform = self.get_sample_waveform(idx)
@@ -134,7 +146,7 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         nperseg = self.sample_rate * 0.48  # 0.48 seconds per segment
         psd_freq, psd = signal.welch(sample_waveform, self.sample_rate, nperseg=nperseg)
 
-        print(f"\tPlotting sample {sample_idx} from the {self.sample_rate} Hz ESC-50 dataset...\n")
+        print(f"Plotting sample {sample_idx} from the {self.sample_rate} Hz ESC-50 dataset.")
         # Figure set-up
         xlabel = "Time (s)"
         title = f"ESC-50 audio downsampled to {int(self.sample_rate)}Hz\n" \
@@ -146,7 +158,7 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         self.touch_up_plot(xlabel, title, sample_fs, np.max(psd))
 
         if self.show_frequency_plots:
-            print(f"\tPlotting the PSD of sample {sample_idx} from the {self.sample_rate} Hz ESC-50 dataset...\n")
+            print(f"Plotting the PSD of sample {sample_idx} from the {self.sample_rate} Hz ESC-50 dataset.")
             tfr_title = f"CWT and waveform from ESC-50 PKL index {sample_idx}"
             tfr_title += f" (clip ID: {self.data[self.get_event_id_col()][sample_idx]})"
             _ = self.plot_tfr(tfr_title, "", sample_fs, time_array, sample_waveform)
