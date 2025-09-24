@@ -1,5 +1,10 @@
 ## UH_Soundscapes Version History
 
+## 1.1.5 (2025-09-24)
+- Added more metadata to ESC-50 print function
+- Updated ESC-50 plot function name
+- Minor fixes due to function updates
+
 ## 1.1.4 (2025-09-23)
 - Fixed bugs with displaying multiple charts
 - Added notes about Jupyter Notebooks to readme and modules
