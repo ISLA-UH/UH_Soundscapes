@@ -84,7 +84,7 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
             last_line += (f" (after upsampling from {int(self.sample_rate)}Hz to 16kHz)")
         last_line += " and the scores are meaned over the clip."
         print(last_line)
-        print(f"\nAll Freesound clips in the dataset, the sample(s) taken from them, and their class labels:")
+        print(f"\nAll Freesound clips in the dataset, their class labels, and the sample(s) taken from them:")
         for clip_id in clips:
             clip_ds = self.data[self.data[self.get_event_id_col()] == clip_id]
             classes, counts = np.unique(clip_ds[self.labels.event_labels.esc50_true_class], return_counts=True)
