@@ -9,7 +9,7 @@ https://github.com/ISLA-UH/UH_Soundscapes/blob/main/notebooks/reader_tutorial.ip
 IDE note: inherited classes aren't properly recognized, so the IDE may not recognize
             some properties or methods.
 """
-from typing import Tuple
+from typing import Optional, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -123,7 +123,7 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         self.ax[0].set_ylabel("Normalized waveform", fontsize=self.font_size)
         plt.subplots_adjust()
 
-    def plot_clip(self, idx: int = None):
+    def plot_clip(self, idx: Optional[int] = None):
         """
         Plot the ESC50 audio clip at the given index.
 

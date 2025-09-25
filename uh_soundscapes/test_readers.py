@@ -35,8 +35,12 @@ def test_shared_reader():
 
 
 if __name__ == "__main__":
+    print("Test astra reader:")
     test_astra_reader()
+    print("\nTest esc50 reader:")
     test_esc50_reader()
+    print("\nTest orex reader:")
     test_orex_reader()
+    print("\nTest shared reader:")
     test_shared_reader()
     plt.show()
