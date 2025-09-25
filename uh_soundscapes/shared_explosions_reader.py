@@ -59,6 +59,21 @@ class SHAReDReader(dsr.DatasetReader, dsr.PlotBase):
                                    SHAReDDatasetLabels(shared_labels, standard_labels), save_path)
         dsr.PlotBase.__init__(self, fig_size, subplots_rows, subplots_cols)
 
+    def new_figure(self, fig_size: Tuple[int, int] = None, subplot_rows: int = None, subplot_cols: int = None):
+        """
+        Create a new figure and Axes object for plotting.
+        :param fig_size: Tuple of (width, height) for the figure size. If None, uses the last plot's fig_size.
+        :param subplot_rows: Number of rows in the subplot grid. If None, uses the last plot's number of rows.
+        :param subplot_cols: Number of columns in the subplot grid. If None, uses the last plot's number of columns.
+        """
+        if fig_size is None:
+            fig_size = self.fig_size
+        if subplot_rows is None:
+            subplot_rows = self.ax.shape[0]
+        if subplot_cols is None:
+            subplot_cols = self.ax.shape[1]
+        dsr.PlotBase.__init__(self, fig_size, subplot_rows, subplot_cols)
+
     def load_data(self):
         """
         Load the SHAReD dataset from the input_path.
@@ -121,16 +136,21 @@ class SHAReDReader(dsr.DatasetReader, dsr.PlotBase):
             ax_idx = 1
             title_type = "Explosion"
         self.ax[2, 1].legend()
+        sensor_type = ["microphone", "barometer", "accelerometer"]
         for i in range(3):
             self.ax[i, ax_idx].tick_params(axis="y", labelsize="large", left=True, labelleft=True)
+            self.ax[i, ax_idx].tick_params(axis="x", which="both", bottom=True, labelbottom=False)
             self.ax[i, ax_idx].set_ylabel("Norm", fontsize=self.font_size)
+            self.ax[i, ax_idx].yaxis.set_ticks([-1, 0, 1])
+            self.ax[i, ax_idx].set_title(f"{title_type} {sensor_type[i]}", fontsize=self.font_size)
+            self.ax[i, ax_idx].sharey(self.ax[i, abs(ax_idx - 1)])
+            if i != 2:
+                self.ax[i, ax_idx].sharex(self.ax[2, ax_idx])
         self.ax[0, ax_idx].set(xlim=(xmin, xmax), ylim=self.base_ylim)
-        self.ax[0, ax_idx].set_title(f"{title_type} microphone", fontsize=self.font_size)
-        self.ax[1, ax_idx].set_title(f"{title_type} barometer", fontsize=self.font_size)
-        self.ax[2, ax_idx].set_title(f"{title_type} accelerometer", fontsize=self.font_size)
         self.ax[2, ax_idx].tick_params(axis="x", which="both", bottom=True, labelbottom=True, labelsize="large")
         self.ax[2, ax_idx].set_xlabel(f"Time (s){' since event' if s_type == 'base' else ''}", fontsize=self.font_size)
-        plt.subplots_adjust(hspace=0.3)
+        self.fig.align_ylabels(self.ax[:, ax_idx])
+        plt.subplots_adjust(hspace=0.2, left=0.075, right=0.98, top=0.865, bottom=0.08, wspace=0.175)
 
     def plot_sensor_data(self, station_idx: int, s_type: str = "base"):
         """
@@ -182,25 +202,34 @@ class SHAReDReader(dsr.DatasetReader, dsr.PlotBase):
         """
         if station_idx is None:
             station_idx = self.data.index[0]
+        if type(self.ax) == np.ndarray:
+            ax_to_check = self.ax.flatten()[0]
+        else:
+            ax_to_check = self.ax
+        if len(ax_to_check.get_children()) != self.n_children_base or self.ax.shape != (3, 2):
+            self.new_figure(self.fig_size, 3, 2)
         event_name = self.data[self.labels.event_labels.event_name][station_idx]
         event_id = self.data[self.labels.get_event_id()][station_idx]
         station_id = self.data[self.labels.event_labels.smartphone_id][station_idx]
-        print(f"\nEvent name: {event_name}, event ID number: {event_id}, station ID: {station_id}")
+        print(f"\nPlotting event name: {event_name}, event ID number: {event_id}, station ID: {station_id}")
         source_yield = self.data[self.labels.event_labels.source_yield_kg][station_idx]
         title_header = f"SHAReD event {event_name}"
-        if source_yield is None:
-            title_header += " source yield not included"
+        if source_yield is None or np.isnan(source_yield):
+            title_header += " (source yield not included)"
         else:
-            title_header += f" {source_yield} kg TNT eq."
+            title_header += f" ({source_yield} kg TNT eq.)"
         # We'll plot the data from each sensor for both the "explosion" and "ambient" segments of data.
         detonation_ts = self.data[self.labels.event_labels.explosion_detonation_time][station_idx]
         start_audio_ts = self.data[self.labels.event_labels.microphone_time_s][station_idx][0] - detonation_ts
         end_audio_ts = self.data[self.labels.event_labels.microphone_time_s][station_idx][-1] - detonation_ts
         dist_m = self.data[self.labels.event_labels.distance_from_explosion_m][station_idx]
 
-        title_line2 = (f"\nDistance from source: {int(dist_m)} m, scaled distance: "
-                       f"{self.data[self.labels.event_labels.scaled_distance][station_idx]:.2f} "
-                       r"m/kg$^{1/3}$")
+        scaled_distance = self.data[self.labels.event_labels.scaled_distance][station_idx]
+        if np.isnan(scaled_distance):
+            scaled_dist_str = "not included"
+        else:
+            scaled_dist_str = f"{scaled_distance:.2f} " + r"m/kg$^{1/3}$"
+        title_line2 = f"\nDistance from source: {int(dist_m)} m, scaled distance: {scaled_dist_str}"
 
         self.fig.suptitle(f"Normalized signals from {title_header}{title_line2}", fontsize=self.font_size + 2)
         self.plot_sensor_data(station_idx, s_type="base")
