@@ -62,6 +62,15 @@ class OREXReader(dsr.DatasetReader, dsr.PlotBase):
         dsr.PlotBase.__init__(self, fig_size)
         self.show_frequency_plots = show_frequency_plots
 
+    def new_figure(self, fig_size: Tuple[int, int] = None):
+        """
+        Create a new figure and Axes object for plotting.
+        :param fig_size: Tuple of (width, height) for the figure size. If None, uses the last plot's fig_size.
+        """
+        if fig_size is None:
+            fig_size = self.fig_size
+        dsr.PlotBase.__init__(self, fig_size)
+
     def print_metadata(self):
         """
         Print metadata about the dataset.
@@ -105,12 +114,14 @@ class OREXReader(dsr.DatasetReader, dsr.PlotBase):
         self.ax.tick_params(axis="y", labelsize="large")
         self.ax.tick_params(axis="x", which="both", bottom=True, labelbottom=True, labelsize="large")
         plt.subplots_adjust()
-        self.fig.subplots_adjust(left=0.15, right=0.95)
+        self.fig.subplots_adjust(left=0.15, right=0.95, top=0.925)
 
     def plot_all(self):
         """
         Plot waveforms from arrays of labels, waveforms, and epochs.
         """
+        if len(self.ax.get_children()) != self.n_children_base:
+            self.new_figure(self.fig_size)
         self.y_adj_buff -= 0.2
         for station in self.data.index:
             sig_wf = self.data[self.labels.event_labels.audio_data][station]
