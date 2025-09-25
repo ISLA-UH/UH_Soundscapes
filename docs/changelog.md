@@ -1,5 +1,9 @@
 ## UH_Soundscapes Version History
 
+## 1.1.6 (2025-09-25)
+- Fixed a bug with multiple plots
+- Minor updates to various print statements
+
 ## 1.1.5 (2025-09-24)
 - Added more metadata to ESC-50 print function
 - Updated ESC-50 plot function name
