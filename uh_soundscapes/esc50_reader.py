@@ -59,6 +59,21 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         dsr.PlotBase.__init__(self, fig_size, subplots_rows, subplots_cols)
         self.show_frequency_plots = show_frequency_plots
 
+    def new_figure(self, fig_size: Tuple[int, int] = None, subplot_rows: int = None, subplot_cols: int = None):
+        """
+        Create a new figure and Axes object for plotting.
+        :param fig_size: Tuple of (width, height) for the figure size. If None, uses the last plot's fig_size.
+        :param subplot_rows: Number of rows in the subplot grid. If None, uses the last plot's number of rows.
+        :param subplot_cols: Number of columns in the subplot grid. If None, uses the last plot's number of columns.
+        """
+        if fig_size is None:
+            fig_size = self.fig_size
+        if subplot_rows is None:
+            subplot_rows = self.ax.shape[0]
+        if subplot_cols is None:
+            subplot_cols = self.ax.shape[1]
+        dsr.PlotBase.__init__(self, fig_size, subplot_rows, subplot_cols)
+
     def load_data(self):
         """
         Load the ESC-50 dataset from the input_path.
@@ -105,7 +120,7 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         """
         return self.data[self.labels.event_labels.audio_data][self.data.index[idx]]
 
-    def touch_up_plot(self, xlabel: str, title: str, sample_rate: float, ax1_ymax: float):
+    def touch_up_plot(self, xlabel: str, title: str, sample_rate: float, ax1_ymax: float, ax0_xmax: float):
         """
         Final adjustments to the plot, such as setting labels and limits.
 
@@ -113,15 +128,19 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         :param title: Title for the plot.
         :param sample_rate: Sampling rate of the audio data.
         :param ax1_ymax: Maximum y-value for the second subplot.
+        :param ax0_xmax: Maximum x-value for the first subplot.
         """        
-        self.ax[0].set(ylim=self.base_ylim)
-        self.ax[0].set_title(title, fontsize=self.font_size + 2)
+        self.ax[0].set(ylim=self.base_ylim, xlim=(0., ax0_xmax))
+        # self.ax[0].set_title(title, fontsize=self.font_size + 2)
         self.ax[1].set(xlim=(0, sample_rate / 2), ylim=(0, ax1_ymax * 1.05))
         self.ax[1].set_xlabel("Frequency (Hz)", fontsize=self.font_size)
         self.ax[1].set_ylabel("Power spectral density (PSD)", fontsize=self.font_size)
         self.ax[0].set_xlabel(xlabel, fontsize=self.font_size)
         self.ax[0].set_ylabel("Normalized waveform", fontsize=self.font_size)
-        plt.subplots_adjust()
+        for ax_i in self.ax:
+            ax_i.tick_params(axis='both', which='both', labelsize='large')
+        self.fig.align_ylabels(self.ax)
+        plt.subplots_adjust(hspace=.3, top=0.875, right=0.95)
 
     def plot_clip(self, idx: Optional[int] = None):
         """
@@ -131,6 +150,12 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         """
         if idx is None:
             idx = 0
+        if type(self.ax) == np.ndarray:
+            ax_to_check = self.ax.flatten()[0]
+        else:
+            ax_to_check = self.ax
+        if len(ax_to_check.get_children()) != self.n_children_base:
+            self.new_figure(self.fig_size, 2, 1)
         sample_idx = self.data.index[idx]
         sample_fs = self.data[self.labels.event_labels.audio_fs][sample_idx]
         sample_waveform = self.get_sample_waveform(idx)
@@ -150,12 +175,13 @@ class ESC50Reader(dsr.DatasetReader, dsr.PlotBase):
         # Figure set-up
         xlabel = "Time (s)"
         title = f"ESC-50 audio downsampled to {int(self.sample_rate)}Hz\n" \
-                f"True class: {sample_esc50_class}\nClass predicted by YAMNet" \
-                f"{' after upsampling' if self.sample_rate < 16000.0 else ''}: {sample_yamnet_class}"
+                f"True class: '{sample_esc50_class}'\nClass predicted by YAMNet" \
+                f"{' after upsampling' if self.sample_rate < 16000.0 else ''}: '{sample_yamnet_class}'"
+        self.fig.suptitle(title, fontsize=self.font_size + 2)
         # Plot the waveforms
         self.ax[0].plot(time_array, sample_waveform, lw=1, color=self.waveform_color)
         self.ax[1].plot(psd_freq, psd, lw=1, color=self.waveform_color)
-        self.touch_up_plot(xlabel, title, sample_fs, np.max(psd))
+        self.touch_up_plot(xlabel, title, sample_fs, np.max(psd), np.max(time_array))
 
         if self.show_frequency_plots:
             print(f"Plotting the PSD of sample {sample_idx} from the {self.sample_rate} Hz ESC-50 dataset.")
